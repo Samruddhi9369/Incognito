@@ -23,4 +23,10 @@ $app->get('/', function () use ($app) {
 $app->post('register','UserController@test');				// first_name, last_name, email, phone, password ----> Create User.
 $app->post('verify','UserController@verifyUser'); 			// email, verification_code ----> Verify User.
 $app->post('login/{part}','UserController@remoteLogin'); 		// 1. email 2. email , tag  -----> Remote Login 2 parts.
+$app->post('getuser','UserController@getUser');				// 1. sender_id  2. id  (JWT Token in Header) ------> Get User Details for Friend List.
 
+
+$app->post('demo','DemoController@demo');
+
+$app->post('send','MessageController@sendMessages');			// sender,message,receive ------> Send Message 1 to 1.
+$app->post('getMessage','MessageController@getMessages');		// from,lastread,to  ---------> Retrieve Messages 1 to 1. 
