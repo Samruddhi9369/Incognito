@@ -4,10 +4,13 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,11 +25,12 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import me.scryptminers.android.incognito.R;
+import me.scryptminers.android.incognito.Util.KeyGenerator;
+import me.scryptminers.android.incognito.Util.SharedValues;
 
 public class VerificationActivity extends AppCompatActivity {
 
@@ -113,8 +117,6 @@ public class VerificationActivity extends AppCompatActivity {
             } catch (InterruptedException e) {
                     e.printStackTrace();
             }
-
-
             return isVerified;
 
         }
@@ -125,6 +127,7 @@ public class VerificationActivity extends AppCompatActivity {
             showProgress(false);
             if(isVerified)
             {
+                KeyGenerator.generateKeys();
                 Intent startMainActivity = new Intent(VerificationActivity.this,MainActivity.class);
                 startActivity(startMainActivity);
             }
@@ -171,5 +174,7 @@ public class VerificationActivity extends AppCompatActivity {
             verificationView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
+
+
 
 }

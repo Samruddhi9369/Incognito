@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.scryptminers.android.incognito.Adapter.CustomFriendsAdapter;
+import me.scryptminers.android.incognito.Database.ChatDatabaseHelper;
 import me.scryptminers.android.incognito.Model.User;
 
 
@@ -37,9 +38,12 @@ public class FriendsListFragment extends Fragment {
     }
 
     public void loadFriends(){
-        User user = new User("sam","kal","email","8978675645","pwd","cpwd");
-        List<User> friends=new ArrayList<User>();
-        friends.add(user);
+        ChatDatabaseHelper db = new ChatDatabaseHelper(getActivity());
+        //User user = new User("sam","kal","email","8978675645","pwd","cpwd");
+
+        List<User> friends = new ArrayList<>();
+        friends = db.getAllUsers();
+        // friends.add(user);
         listViewFriends.setAdapter(new CustomFriendsAdapter(getContext(), R.layout.custom_row, friends));
 
     }

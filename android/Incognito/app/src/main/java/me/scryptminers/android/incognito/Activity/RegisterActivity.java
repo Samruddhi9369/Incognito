@@ -4,9 +4,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,11 +27,21 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.spec.ECGenParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
 
 import me.scryptminers.android.incognito.Model.User;
 import me.scryptminers.android.incognito.R;
+import me.scryptminers.android.incognito.Util.HashFunctions;
 import me.scryptminers.android.incognito.Util.Validations;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -38,7 +50,6 @@ public class RegisterActivity extends AppCompatActivity {
     JsonObjectRequest jsonObjectRequest;
     Boolean isRegistered = false;
     final String URL="https://scryptminers.me/register";
-
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -60,10 +71,17 @@ public class RegisterActivity extends AppCompatActivity {
     private View mRegistrationFormView;
     private View focusView = null;
     private boolean cancel = false;
+
+    static {
+        Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+
 
         mFirstNameView = (EditText) findViewById(R.id.firstname);
         mLastNameView = (EditText) findViewById(R.id.lastname);
@@ -138,7 +156,6 @@ public class RegisterActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(String... params) {
-
             Map<String,String> userMap = new HashMap<>();
             userMap.put("firstname",user.getFirstName());
             userMap.put("lastname",user.getLastName());
@@ -152,13 +169,27 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            String responseMessage = response.getString("message");
-                           // Toast.makeText(RegisterActivity.this, responseMessage, Toast.LENGTH_SHORT).show();
-                            if(responseMessage.matches("User Registered Successfully! Verification Code sent!")){
-                                Toast.makeText(RegisterActivity.this, "Registration Successful.\nPlease verify your account.", Toast.LENGTH_SHORT).show();
-                                isRegistered = true;
-
+                            String code  = response.getString("code");
+                            switch (code)
+                            {
+                                case "1":
+                                    Toast.makeText(RegisterActivity.this, "Registration Successful.\nPlease verify your account.", Toast.LENGTH_SHORT).show();
+                                    isRegistered = true;
+                                    break;
+                                case "2":
+                                    Toast.makeText(RegisterActivity.this, "Error in registration. Please try after some time.", Toast.LENGTH_SHORT).show();
+                                    isRegistered = false;
+                                    break;
+                                case "10":
+                                    Toast.makeText(RegisterActivity.this, "User is already registered.", Toast.LENGTH_SHORT).show();
+                                    mEmailView.setError(getString(R.string.error_duplicate_email));
+                                    focusView = mEmailView;
+                                    isRegistered = false;
+                                    break;
+                                default:
+                                    break;
                             }
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -167,19 +198,14 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(RegisterActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.e("RegistrationError","Something went wrong!"+error.getMessage());
-
                     }
                 });
-
                 requestQueue.add(jsonObjectRequest);
                 while (!jsonObjectRequest.hasHadResponseDelivered())
                     Thread.sleep(2000);
             } catch (InterruptedException e) {
                 Log.d("error",e.toString());
-
             }
-
             return isRegistered;
         }
 
@@ -318,4 +344,5 @@ public class RegisterActivity extends AppCompatActivity {
         mPasswordView.setError(null);
         mConfirmPasswordView.setError(null);
     }
+
 }

@@ -28,9 +28,9 @@ public class CustomFriendsAdapter extends ArrayAdapter<User> {
         User friend = friendsList.get(position);
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View row = inflater.inflate(R.layout.custom_row, null);
-        TextView textView = (TextView) row.findViewById(R.id.rowText);
+        TextView textView = (TextView) row.findViewById(R.id.rowName);
         TextView textDate = (TextView) row.findViewById(R.id.rowDate);
-        textView.setText(friend.getFirstName());
+        textView.setText(friend.getFirstName()+" "+friend.getLastName());
         textDate.setText(friend.getEmail());
         return row;
     }

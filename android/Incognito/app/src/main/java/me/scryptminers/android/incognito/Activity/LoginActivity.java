@@ -35,6 +35,7 @@ import java.util.Map;
 
 import me.scryptminers.android.incognito.R;
 import me.scryptminers.android.incognito.Util.HashFunctions;
+import me.scryptminers.android.incognito.Util.SharedValues;
 import me.scryptminers.android.incognito.Util.Validations;
 
 /**
@@ -65,6 +66,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        //Create object of Shared Values
+        SharedValues.init(getApplicationContext());
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -160,9 +163,8 @@ public class LoginActivity extends AppCompatActivity {
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
-
+    // Function : Post Login Step 1
     public boolean postLoginStepOne(final Map<String,String> userLoginMap){
-
         try {
             // Simulate network access.
             requestQueue = Volley.newRequestQueue(getApplicationContext());
@@ -171,15 +173,12 @@ public class LoginActivity extends AppCompatActivity {
                 public void onResponse(JSONObject response) {
                     try {
                         if(response.getString("c") != null && response.getString("salt") != null){
-                            String responseChallenge = response.getString("c");
-                            String responseSalt = response.getString("salt");
-                            String passwordHash = HashFunctions.getPasswordHash(password, responseSalt);
-                            TAG = HashFunctions.HMAC(responseChallenge,passwordHash);
-                            Log.d("passHASH",passwordHash);
-                            Log.d("HMAC",TAG);
+                            String responseChallenge = response.getString("c"); // get Challenge from Server
+                            String responseSalt = response.getString("salt"); // get Salt from Server
+                            String passwordHash = HashFunctions.getPasswordHash(password, responseSalt); // Calculate password hash
+                            TAG = HashFunctions.HMAC(responseChallenge,passwordHash); // Generate Tag from challenge and password hash
                             isPostLoginOne = true;
                         }
-
                     } catch (JSONException e) {
                         e.printStackTrace();
                     } catch (Exception e) {
@@ -190,11 +189,8 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Toast.makeText(LoginActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e("LoginError","Something went wrong!"+error.getMessage());
-
                 }
             });
-
             requestQueue.add(jsonObjectRequest);
             while (!jsonObjectRequest.hasHadResponseDelivered())
                 Thread.sleep(2000);
@@ -203,21 +199,22 @@ public class LoginActivity extends AppCompatActivity {
         }
         return isPostLoginOne;
     }
-
+    // Function: Post Login Step 2
     public boolean postLoginStepTwo(final Map<String,String> userTagMap){
         try {
             // Simulate network access.
             jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, URL_LOGIN_PART2, new JSONObject(userTagMap), new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
-                    try {
+                    try { // Send TAG calculated in Step 1 to Server
                         if(response.getString("code").matches("0")){
-
-                            String responseToken = response.getString("token");
+                            String responseToken = response.getString("token");// If TAG is verified, token is returned by server
+                            SharedValues.save("JWT_TOKEN",responseToken);
+                            long userID = response.getLong("user_id");
+                            SharedValues.save("USER_ID",userID);
                             if(responseToken != null){
                                 Toast.makeText(LoginActivity.this, "Login Successful.", Toast.LENGTH_SHORT).show();
                                 isPostLoginTwo = true;
-
                             }
                         }
                     } catch (JSONException e) {
@@ -229,10 +226,8 @@ public class LoginActivity extends AppCompatActivity {
                 public void onErrorResponse(VolleyError error) {
                     Toast.makeText(LoginActivity.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
                     Log.e("LoginError","Something went wrong!");
-
                 }
             });
-
             requestQueue.add(jsonObjectRequest);
             while (!jsonObjectRequest.hasHadResponseDelivered())
                 Thread.sleep(2000);

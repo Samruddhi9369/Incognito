@@ -43,5 +43,6 @@ dependencies {
     compile 'com.journeyapps:zxing-android-embedded:3.2.0@aar'
     compile 'com.android.volley:volley:1.0.0'
     compile 'org.apache.directory.studio:org.apache.commons.codec:1.8'
+    compile 'com.madgag.spongycastle:prov:1.54.0.0'
     testCompile 'junit:junit:4.12'
 }

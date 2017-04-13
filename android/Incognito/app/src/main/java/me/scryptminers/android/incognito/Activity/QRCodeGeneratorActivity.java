@@ -11,7 +11,15 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+
 import me.scryptminers.android.incognito.R;
+import me.scryptminers.android.incognito.Util.SharedValues;
 
 public class QRCodeGeneratorActivity extends AppCompatActivity {
     private ImageView imageViewQRCode;
@@ -26,7 +34,9 @@ public class QRCodeGeneratorActivity extends AppCompatActivity {
     public void generateQRCode(){
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
         try{
-            BitMatrix bitMatrix = multiFormatWriter.encode("text2Qr", BarcodeFormat.QR_CODE,200,200);
+            String publicKey = SharedValues.getValue("PUBLIC_KEY");
+            long userId = SharedValues.getLong("USER_ID");
+            BitMatrix bitMatrix = multiFormatWriter.encode(publicKey+SharedValues.DELIMITER+userId, BarcodeFormat.QR_CODE,200,200);
 
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
             Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
@@ -35,4 +45,5 @@ public class QRCodeGeneratorActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
 }

@@ -1,5 +1,8 @@
 package me.scryptminers.android.incognito.Util;
 
+import org.spongycastle.util.encoders.Base64;
+import org.spongycastle.util.encoders.Hex;
+
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -39,5 +42,25 @@ public class HashFunctions {
             e.printStackTrace();
         }
         return generatedPassword;
+    }
+
+    public static String base64Encode(byte[] b) {
+        try {
+            return new String(Base64.encode(b), "ASCII");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String hex(byte[] bytes) {
+        try {
+            return new String(Hex.encode(bytes), "ASCII");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static byte[] base64Decode(String str) {
+        return Base64.decode(str);
     }
 }
