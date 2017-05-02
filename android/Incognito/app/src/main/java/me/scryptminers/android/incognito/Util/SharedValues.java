@@ -35,4 +35,8 @@ public class SharedValues {
     {
         return prefs.getLong(key,0);
     }
+
+    public static void clear() {
+        prefs.edit().clear().commit();
+    }
 }

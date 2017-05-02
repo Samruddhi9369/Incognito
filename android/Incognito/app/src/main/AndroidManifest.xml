@@ -14,37 +14,38 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".Activity.LoginActivity"
-            android:label="Login">
+            >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".Activity.RegisterActivity"
-            android:label="Register">
-        </activity>
+            android:label="Register"></activity>
         <activity
             android:name=".Activity.MainActivity"
             android:label="Incognito"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".Activity.ChatActivity"
-            android:label="Chat">
-        </activity>
+            android:label="Chat"></activity>
         <activity
             android:name=".Activity.VerificationActivity"
-            android:label="Verification">
-        </activity>
+            android:label="Verification"></activity>
         <activity
             android:name=".Activity.QRCodeGeneratorActivity"
-            android:label="My Public Key">
-        </activity>
+            android:label="My Public Key"></activity>
         <activity
             android:name=".Activity.QRCodeScannerActivity"
-            android:label="Add Friends">
-        </activity>
+            android:label="Add Friends"></activity>
+        <activity android:name=".Activity.CreateGroupActivity"></activity>
+        <service
+            android:name=".Service.MessageService"
+            android:enabled="true"
+            android:exported="false" />
+
     </application>
 
 </manifest>

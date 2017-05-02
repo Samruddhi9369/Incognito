@@ -42,7 +42,7 @@ public class QRCodeScannerActivity extends AppCompatActivity {
     private Button btnScan;
     private User friend;
     final Activity activity = this;
-    private Long recUserId;
+    private long recUserId;
     private QRCodeScanner scannerTask;
     private View mProgressView;
     private View scannerView;

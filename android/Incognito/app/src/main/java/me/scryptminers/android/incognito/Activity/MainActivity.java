@@ -20,7 +20,11 @@ import java.util.List;
 
 import me.scryptminers.android.incognito.Adapter.SectionsPagerAdapter;
 import me.scryptminers.android.incognito.FriendsListFragment;
+import me.scryptminers.android.incognito.GroupListFragment;
 import me.scryptminers.android.incognito.R;
+import me.scryptminers.android.incognito.Service.MessageService;
+import me.scryptminers.android.incognito.Util.HashFunctions;
+import me.scryptminers.android.incognito.Util.KeyGenerator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,12 +42,16 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private int activeTab = 0;
+    private final int REQUEST_CODE = 333;
+    FriendsListFragment friendsFragment;
+    GroupListFragment groupFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        //KeyGenerator.generateKeys();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -51,16 +59,21 @@ public class MainActivity extends AppCompatActivity {
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this,QRCodeScannerActivity.class);
-                startActivity(intent);
+                if(activeTab == 0){
+                    Intent intent = new Intent(MainActivity.this,QRCodeScannerActivity.class);
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent(MainActivity.this,CreateGroupActivity.class);
+                    startActivityForResult(intent, REQUEST_CODE);
+                }
             }
         });
 
-        FriendsListFragment friendsFragment = new FriendsListFragment();
-        FriendsListFragment friendsFragment2 = new FriendsListFragment();
+        friendsFragment = new FriendsListFragment();
+        groupFragment = new GroupListFragment();
         List<Fragment> fragmentsList = new ArrayList<>();
         fragmentsList.add(friendsFragment);
-        fragmentsList.add(friendsFragment2);
+        fragmentsList.add(groupFragment);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),fragmentsList);
@@ -76,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 mViewPager.setCurrentItem(tab.getPosition());
+                activeTab = tab.getPosition();
             }
 
             @Override
@@ -92,6 +106,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            // refresh the group fragment
+            return;
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

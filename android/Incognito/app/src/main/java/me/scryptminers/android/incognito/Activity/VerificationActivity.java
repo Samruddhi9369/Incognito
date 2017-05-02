@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.scryptminers.android.incognito.Database.ChatDatabaseHelper;
 import me.scryptminers.android.incognito.R;
 import me.scryptminers.android.incognito.Util.KeyGenerator;
 import me.scryptminers.android.incognito.Util.SharedValues;
@@ -37,6 +38,7 @@ public class VerificationActivity extends AppCompatActivity {
     private EditText code;
     private Button btn;
     private String vcode;
+    private Long userId;
     public String email;
     private Verification verifyTask;
     private View mProgressView;
@@ -93,6 +95,7 @@ public class VerificationActivity extends AppCompatActivity {
                                 {
                                     token=response.getString("token");
                                     isVerified = true;
+                                    userId=response.getLong("ID");
                                 }
                                 else {
                                     String error = response.getString("error");
@@ -127,7 +130,13 @@ public class VerificationActivity extends AppCompatActivity {
             showProgress(false);
             if(isVerified)
             {
+                SharedValues.clear();
+                ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
+                db.onUpgrade(db.getWritableDatabase(),1,2);
                 KeyGenerator.generateKeys();
+                SharedValues.save("USER_ID",userId);
+                SharedValues.save("USER_EMAIL",email);
+                SharedValues.save("Last_Read",0);
                 Intent startMainActivity = new Intent(VerificationActivity.this,MainActivity.class);
                 startActivity(startMainActivity);
             }

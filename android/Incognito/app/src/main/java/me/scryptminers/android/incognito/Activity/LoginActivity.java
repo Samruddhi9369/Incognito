@@ -286,6 +286,7 @@ public class LoginActivity extends AppCompatActivity {
                 finish();
                 Intent i = new Intent(LoginActivity.this,MainActivity.class);
                 i.putExtra("email",userEmail);
+                SharedValues.save("USER_EMAIL",userEmail);
                 startActivity(i);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

@@ -5,22 +5,33 @@ package me.scryptminers.android.incognito.Model;
  */
 
 public class Message {
-    private String author;
-    private String message;
-    private String direction;
+    private String from;
 
-    public Message(String author, String message, String direction) {
-        this.author = author;
+    public Message(String from, String to, String message, String direction) {
+        this.from = from;
+        this.to = to;
         this.message = message;
         this.direction = direction;
     }
 
-    public String getAuthor() {
-        return author;
+    private String to;
+    private String message;
+    private String direction;
+
+    public String getFrom() {
+        return from;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
     }
 
     public String getMessage() {

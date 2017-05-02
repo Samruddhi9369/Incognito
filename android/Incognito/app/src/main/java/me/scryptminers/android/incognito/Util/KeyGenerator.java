@@ -24,27 +24,22 @@ import java.security.spec.X509EncodedKeySpec;
 public class KeyGenerator {
 
     public static void generateKeys() {
-        ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp224k1");
+        //ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp224k1");
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECDH","SC");
-            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             PublicKey publicKey = keyPair.getPublic();
             PrivateKey privateKey = keyPair.getPrivate();
 
-            String strPublicKey = HashFunctions.base64Encode(publicKey.getEncoded());
-            String strPrivateKey = HashFunctions.base64Encode(privateKey.getEncoded());
+            String strPublicKey = Base64.encodeToString(publicKey.getEncoded(),Base64.DEFAULT);
+            String strPrivateKey = Base64.encodeToString(privateKey.getEncoded(),Base64.DEFAULT);
             SharedValues.save("PUBLIC_KEY",strPublicKey);
             SharedValues.save("PRIVATE_KEY",strPrivateKey);
             Log.e("PublicKey",strPublicKey);
             Log.e("PrivateKey",strPrivateKey);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
         }
-
     }
 }
