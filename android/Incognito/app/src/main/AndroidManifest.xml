@@ -12,9 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".Activity.LoginActivity"
-            >
+        <activity android:name=".Activity.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,29 +21,35 @@
         </activity>
         <activity
             android:name=".Activity.RegisterActivity"
-            android:label="Register"></activity>
+            android:label="Register" />
         <activity
             android:name=".Activity.MainActivity"
             android:label="Incognito"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activity.ChatActivity"
-            android:label="Chat"></activity>
+            android:label="Chat" />
         <activity
             android:name=".Activity.VerificationActivity"
-            android:label="Verification"></activity>
+            android:label="Verification" />
         <activity
             android:name=".Activity.QRCodeGeneratorActivity"
-            android:label="My Public Key"></activity>
+            android:label="My Public Key" />
         <activity
             android:name=".Activity.QRCodeScannerActivity"
-            android:label="Add Friends"></activity>
-        <activity android:name=".Activity.CreateGroupActivity"></activity>
+            android:label="Add Friends" />
+        <activity android:name=".Activity.CreateGroupActivity" />
+
         <service
             android:name=".Service.MessageService"
             android:enabled="true"
             android:exported="false" />
+        <service
+            android:name=".Service.GroupService"
+            android:enabled="true"
+            android:exported="false" />
 
+        <activity android:name=".Activity.GroupChatActivity"></activity>
     </application>
 
 </manifest>

@@ -9,6 +9,10 @@ public class Group {
     private String groupAdmin;
     private String[] groupMembers;
 
+    public Group(){
+
+    }
+
     public Group(String groupName, String groupAdmin, String[] groupMembers) {
         this.groupName = groupName;
         this.groupAdmin = groupAdmin;

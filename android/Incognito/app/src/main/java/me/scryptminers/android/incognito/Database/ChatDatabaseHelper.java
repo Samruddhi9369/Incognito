@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import me.scryptminers.android.incognito.Model.Group;
+import me.scryptminers.android.incognito.Model.GroupMessage;
 import me.scryptminers.android.incognito.Model.Message;
 import me.scryptminers.android.incognito.Model.User;
 
@@ -22,6 +23,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
     // Labels table name
     private static final String TABLE_FRIENDS = "Friends";
     private static final String TABLE_MESSAGES = "Messages";
+    private static final String TABLE_GROUP_MESSAGES = "GroupMessages";
     // Labels Table Columns names
     private static final String KEY_FRIEND_ID = "id";
     private static final String KEY_USER_ID = "user_id";
@@ -43,6 +45,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_FROM_EMAIL = "from_email";
     private static final String KEY_TO_EMAIL = "to_email";
     private static final String KEY_MESSAGE = "message";
+    //Group Messages Table
 
 
     public ChatDatabaseHelper(Context context) {
@@ -81,9 +84,19 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 + KEY_MESSAGE + " TEXT "
                 + " );";
 
+        String CREATE_GROUP_MESSAGES_TABLE = "CREATE TABLE " +
+                TABLE_GROUP_MESSAGES + "("
+                + KEY_MESSAGE_ID + " INTEGER PRIMARY KEY, "
+                + KEY_DIRECTION + " TEXT, "
+                + KEY_GROUP_NAME + " TEXT, "
+                + KEY_FROM_EMAIL + " TEXT, "
+                + KEY_MESSAGE + " TEXT "
+                + " );";
+
         db.execSQL(CREATE_FRIENDS_TABLE);
         db.execSQL(CREATE_GROUPS_TABLE);
         db.execSQL(CREATE_MESSAGES_TABLE);
+        db.execSQL(CREATE_GROUP_MESSAGES_TABLE);
     }
 
     @Override
@@ -92,6 +105,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_FRIENDS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_GROUPS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_MESSAGES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_GROUP_MESSAGES);
         // Create tables again
         onCreate(db);
     }
@@ -192,8 +206,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
-                List<String> groupMembers = Arrays.asList(cursor.getString(3).split("\\s*,\\s*"));
-                String[] members = new String[groupMembers.size()];
+                String[] members = cursor.getString(2).split(",");
                 groups.add(new Group(cursor.getString(cursor.getColumnIndexOrThrow(KEY_GROUP_NAME)),cursor.getString(cursor.getColumnIndexOrThrow(KEY_ADMIN_EMAIL)),members));
             } while (cursor.moveToNext());
         }
@@ -256,6 +269,67 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         db.close();
         // returning groups
         return messages;
+    }
+
+    //direction, group_name, from, message
+    public void addGroupMessage(GroupMessage groupMessage){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_DIRECTION,groupMessage.getDirection());
+        values.put(KEY_GROUP_NAME,groupMessage.getgroupName());
+        values.put(KEY_FROM_EMAIL,groupMessage.getFrom());
+        values.put(KEY_MESSAGE,groupMessage.getMessage());
+        // Inserting Row
+        db.insert(TABLE_GROUP_MESSAGES, null, values);
+        db.close();
+    }
+
+    public List<GroupMessage> getAllGroupMessages(String userEmail){
+        List<GroupMessage> messages = new ArrayList<GroupMessage>();
+        // Select All Query
+        String selectQuery = "SELECT * FROM " +
+                TABLE_GROUP_MESSAGES;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        //message, from, groupname, direction
+        if (cursor.moveToFirst()) {
+            do {
+                messages.add(new GroupMessage(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MESSAGE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(KEY_FROM_EMAIL)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(KEY_GROUP_NAME)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(KEY_DIRECTION))));
+            } while (cursor.moveToNext());
+        }
+        // closing connection
+        cursor.close();
+        db.close();
+        // returning groups
+        return messages;
+    }
+
+    public String[] getAllGroupMembers(String groupName){
+        String[] members={};
+        String selectQuery = "SELECT * FROM " +
+                TABLE_GROUPS +
+                " WHERE " +
+                KEY_GROUP_NAME +" = "
+                + groupName;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                members = cursor.getString(2).split(",");
+                //groups.add(new Group(cursor.getString(cursor.getColumnIndexOrThrow(KEY_GROUP_NAME)),cursor.getString(cursor.getColumnIndexOrThrow(KEY_ADMIN_EMAIL)),members));
+            } while (cursor.moveToNext());
+        }
+        // closing connection
+        cursor.close();
+        db.close();
+        // returning groups
+        return members;
     }
 
 }

@@ -1,6 +1,7 @@
 package me.scryptminers.android.incognito.Adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,14 @@ public class CustomGroupsAdapter extends ArrayAdapter<Group> {
         TextView textView = (TextView) row.findViewById(R.id.rowName);
         TextView textDate = (TextView) row.findViewById(R.id.rowDate);
         textView.setText(group.getGroupName());
+        String[] members1 = group.getGroupMembers();
+        StringBuilder builder = new StringBuilder();
+        for (String member : members1) {
+            builder.append(member).append(",");
+        }
+
+        builder.deleteCharAt(builder.length() - 1);
+        Log.e("MEmbers",builder.toString());
         textDate.setText("Participants: "+ group.getGroupMembers().length);
         return row;
     }

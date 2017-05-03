@@ -137,6 +137,8 @@ public class VerificationActivity extends AppCompatActivity {
                 SharedValues.save("USER_ID",userId);
                 SharedValues.save("USER_EMAIL",email);
                 SharedValues.save("Last_Read",0);
+                SharedValues.save("Last_Group_ID",0);
+                SharedValues.save("Last_Group_Read",0);
                 Intent startMainActivity = new Intent(VerificationActivity.this,MainActivity.class);
                 startActivity(startMainActivity);
             }

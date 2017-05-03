@@ -19,6 +19,7 @@ import me.scryptminers.android.incognito.Adapter.CustomGroupsAdapter;
 import me.scryptminers.android.incognito.Database.ChatDatabaseHelper;
 import me.scryptminers.android.incognito.Model.Group;
 import me.scryptminers.android.incognito.Model.User;
+import me.scryptminers.android.incognito.Util.SharedValues;
 
 
 /**
@@ -29,7 +30,8 @@ import me.scryptminers.android.incognito.Model.User;
  */
 public class GroupListFragment extends Fragment {
     private ListView listViewGroups;
-    private List<Group> groups;
+    public static List<Group> groups;
+    public static CustomGroupsAdapter customGroupsAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -38,8 +40,21 @@ public class GroupListFragment extends Fragment {
         // Inflate the layout for this fragment
 
         listViewGroups = (ListView) view.findViewById(R.id.listViewGroups);
-        loadGroups();
+        ChatDatabaseHelper db = new ChatDatabaseHelper(getActivity());
+        //User user = new User("sam","kal","email","8978675645","pwd","cpwd");
+
+        groups = db.getAllGroups();
+        customGroupsAdapter = new CustomGroupsAdapter(getContext(), R.layout.custom_row, groups);
+        listViewGroups.setAdapter(customGroupsAdapter);
         registerForContextMenu(listViewGroups);
+        listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(), ChatActivity.class);
+                intent.putExtra("GROUP_NAME",groups.get(position).getGroupName());
+                startActivity(intent);
+            }
+        });
         return view;
     }
 

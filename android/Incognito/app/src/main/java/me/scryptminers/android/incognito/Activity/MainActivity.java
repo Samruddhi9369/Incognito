@@ -1,6 +1,9 @@
 package me.scryptminers.android.incognito.Activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -10,6 +13,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +26,7 @@ import me.scryptminers.android.incognito.Adapter.SectionsPagerAdapter;
 import me.scryptminers.android.incognito.FriendsListFragment;
 import me.scryptminers.android.incognito.GroupListFragment;
 import me.scryptminers.android.incognito.R;
+import me.scryptminers.android.incognito.Service.GroupService;
 import me.scryptminers.android.incognito.Service.MessageService;
 import me.scryptminers.android.incognito.Util.HashFunctions;
 import me.scryptminers.android.incognito.Util.KeyGenerator;
@@ -46,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     private final int REQUEST_CODE = 333;
     FriendsListFragment friendsFragment;
     GroupListFragment groupFragment;
+    Intent groupIntent;
+    private BroadcastReceiver broadcastReceiver;
+    private boolean isRegistered;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +62,21 @@ public class MainActivity extends AppCompatActivity {
         //KeyGenerator.generateKeys();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //Service for get groups
+        groupIntent = new Intent(this, GroupService.class);
+        startService(groupIntent);
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // msgs.clear();
+                //msgs = db.getAllMessages(userEmail);
+                Log.d("Message","In Onreceive");
+                GroupListFragment.customGroupsAdapter.notifyDataSetChanged();
+                //listViewChat.invalidate();
+                //listViewChat.setSelection(customChatAdapter.getCount() - 1);
+            }
+        };
 
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -140,6 +163,39 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!isRegistered) {
+            registerReceiver(broadcastReceiver, new IntentFilter("Groups"));
+            isRegistered = true;
+
+/*            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    // msgs.clear();
+                    //msgs = db.getAllMessages(userEmail);
+                    customChatAdapter.notifyDataSetChanged();
+                    listViewChat.invalidate();
+                    //listViewChat.setSelection(customChatAdapter.getCount() - 1);
+                }
+            };*/
+
+        }
+
+    }
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (isRegistered) {
+            unregisterReceiver(broadcastReceiver);
+            isRegistered = false;
+        }
+        stopService(groupIntent);
     }
 
 }
