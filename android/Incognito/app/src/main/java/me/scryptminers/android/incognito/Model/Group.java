@@ -8,6 +8,7 @@ public class Group {
     private String groupName;
     private String groupAdmin;
     private String[] groupMembers;
+    private String[] groupkeys;
 
     public Group(){
 
@@ -17,6 +18,13 @@ public class Group {
         this.groupName = groupName;
         this.groupAdmin = groupAdmin;
         this.groupMembers = groupMembers;
+    }
+
+    public Group(String groupName, String groupAdmin, String[] groupMembers, String[] memberkeys) {
+        this.groupName = groupName;
+        this.groupAdmin = groupAdmin;
+        this.groupMembers = groupMembers;
+        this.groupkeys=memberkeys;
     }
 
     public String getGroupName() {
@@ -42,5 +50,9 @@ public class Group {
     public void setGroupMembers(String[] groupMembers) {
         this.groupMembers = groupMembers;
     }
+
+    public void setGroupkeys(String[] groupkeys) { this.groupkeys = groupkeys;     }
+
+    public String[] getGroupkeys() {  return groupkeys;    }
 
 }

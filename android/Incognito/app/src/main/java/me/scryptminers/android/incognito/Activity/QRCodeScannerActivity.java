@@ -82,7 +82,7 @@ public class QRCodeScannerActivity extends AppCompatActivity {
             if(result.getContents() == null){
                 Toast.makeText(this, "You have cancelled the scanning", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, result.getContents(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, result.getContents(), Toast.LENGTH_SHORT).show();
                 String content = result.getContents();
                 String[] splitCode = content.split("%%%");
                 recPublicKey = splitCode[0];

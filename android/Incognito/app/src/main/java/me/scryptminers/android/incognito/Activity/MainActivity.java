@@ -30,6 +30,7 @@ import me.scryptminers.android.incognito.Service.GroupService;
 import me.scryptminers.android.incognito.Service.MessageService;
 import me.scryptminers.android.incognito.Util.HashFunctions;
 import me.scryptminers.android.incognito.Util.KeyGenerator;
+import me.scryptminers.android.incognito.Util.SharedValues;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         //KeyGenerator.generateKeys();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        SharedValues.init(getApplicationContext());
         //Service for get groups
         groupIntent = new Intent(this, GroupService.class);
         startService(groupIntent);
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 //msgs = db.getAllMessages(userEmail);
                 Log.d("Message","In Onreceive");
                 GroupListFragment.customGroupsAdapter.notifyDataSetChanged();
-                //listViewChat.invalidate();
+                GroupListFragment.listViewGroups.invalidate();
                 //listViewChat.setSelection(customChatAdapter.getCount() - 1);
             }
         };

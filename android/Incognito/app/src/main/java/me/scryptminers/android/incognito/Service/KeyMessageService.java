@@ -1,12 +1,14 @@
 package me.scryptminers.android.incognito.Service;
 
 import android.app.IntentService;
+import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -18,41 +20,27 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.spongycastle.util.encoders.Base64;
 
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
 import me.scryptminers.android.incognito.Activity.ChatActivity;
-import me.scryptminers.android.incognito.Activity.GroupChatActivity;
 import me.scryptminers.android.incognito.Database.ChatDatabaseHelper;
-import me.scryptminers.android.incognito.Model.Group;
-import me.scryptminers.android.incognito.Model.GroupMessage;
 import me.scryptminers.android.incognito.Model.Message;
 import me.scryptminers.android.incognito.Util.PGP;
 import me.scryptminers.android.incognito.Util.SharedValues;
 
 /**
- * Created by Samruddhi on 5/2/2017.
+ * Created by Samruddhi on 4/30/2017.
  */
 
-public class GroupMessageService extends IntentService {
+public class KeyMessageService extends IntentService {
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
      * @param name Used to name the worker thread, important only for debugging.
      */
-    private String groupName, userEmail;
+    private String groupname, userEmail;
     private Handler handler = new Handler();
     private static int lastread=0;
     private Runnable runnableCode = new Runnable() {
@@ -60,31 +48,31 @@ public class GroupMessageService extends IntentService {
         @Override
         public void run() {
 
-            ReceiveGroupMessageTask receiveGroupMessageTask = new ReceiveGroupMessageTask();
-            receiveGroupMessageTask.execute("dsds");
+            ReceiveMessageTask receiveMessageTask = new ReceiveMessageTask();
+            receiveMessageTask.execute("dsds");
             //ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
             //db.getAllMessages(userEmail);
 
         }
     };
 
-    public class ReceiveGroupMessageTask extends AsyncTask<String, Void, Boolean> {
+    public class ReceiveMessageTask extends AsyncTask<String, Void, Boolean> {
 
         private RequestQueue requestQueue;
         private JsonObjectRequest jsonObjectRequest;
-        private final String URL="https://scryptminers.me/getTeamMessage";
+        private final String URL="https://scryptminers.me/getKeyMessages";
         private boolean successrun;
 
-        public ReceiveGroupMessageTask() {
+        public ReceiveMessageTask() {
         }
 
         @Override
         protected Boolean doInBackground(String... params) {
 
             Map<String,String> userMap = new HashMap<>();
+            userMap.put("groupname",groupname);
             userMap.put("to", SharedValues.getValue("USER_EMAIL"));
-            userMap.put("group_name", groupName);
-            userMap.put("Last_Group_Read",""+SharedValues.getLong("Last_Read"+groupName));
+            userMap.put("lastread",""+SharedValues.getLong("Last_Read"));
             try {
                 // Simulate network access.
                 requestQueue = Volley.newRequestQueue(getApplicationContext());
@@ -92,7 +80,7 @@ public class GroupMessageService extends IntentService {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            JSONArray jsonArray = response.getJSONArray("messages");
+                            JSONArray jsonArray = response.getJSONArray("keymessages");
                             if(jsonArray.length()==0)
                             {
                                 successrun=false;
@@ -100,42 +88,17 @@ public class GroupMessageService extends IntentService {
                             else {
                                 //String message_received  = response.getString("message");
                                 successrun=true;
-                                ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
                                 for (int i = 0, size = jsonArray.length(); i < size; i++) {
                                     JSONObject objectInArray = jsonArray.getJSONObject(i);
                                     String ciphertext = objectInArray.getString("message");
+                                    ciphertext=ciphertext.replace("_"+groupname+"_Key","");
+                                    Log.d("In Key Message service",ciphertext);
                                     String message = PGP.decryptMessage(ciphertext, SharedValues.getValue("PRIVATE_KEY"));
-                                    String direction="right";
-                                    db.addGroupMessage(new GroupMessage(message,objectInArray.getString("from"),userEmail,groupName,direction));
-                                    GroupChatActivity.groupMessages.add(new GroupMessage(message,objectInArray.getString("from"),userEmail,groupName,direction));
                                     Log.d("Recieved", message);
-                                    SharedValues.save("Last_Read"+groupName, objectInArray.getInt("id"));
-
-
-                                    /*for(int j = 0;j<groupMembers.length;j++){
-                                        if(!groupMembers[j].matches(userEmail)){
-                                            //position = j;
-                                        //String cipherToDecrypt = arrCiphertext[position];
-
-                                        }
-                                    }*/
-                                    /*//String groupKey = db.getGroupKey(groupName);
-                                    String groupKey=SharedValues.getValue(groupName+"_KEY");
-                                    //--------------------------------------------------------------
-                                   // byte[] encodedKey     = android.util.Base64.decode(groupKey, android.util.Base64.DEFAULT);
-                                   // SecretKey originalKey = new SecretKeySpec(encodedKey, 0, encodedKey.length, "AES");
-                                    //--------------------------------------------------------------
-                                    byte[] gkey = Base64.decode(groupKey);
-                                    SecretKey encryptionKey = new SecretKeySpec(gkey, "AES");
-                                    byte[] rawAESkey = encryptionKey.getEncoded();
-                                    //byte[] decryptedMessage = PGP.decryptGroupMessage(ciphertext, encryptionKey);
-                                    Log.e("Received groupc",ciphertext);
-                                    byte[] decryptedMessage = PGP.decryptGroupMessage(ciphertext, encryptionKey);
-                                    //String message = PGP.decryptGroupMessage(ciphertext, rawAESkey);
-                                    String message = new String(decryptedMessage);
-                                    //db.addMessage(new Message(friendEmail, userEmail, message, "right"));
-
-                                  */
+                                    ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
+                                    db.updateGroupKey(groupname,message);
+                                    SharedValues.save(groupname+"_KEY",message);
+                                   // SharedValues.save("Last_Read", objectInArray.getInt("id"));
                                     //msgs.add(new Message(friendName,message,"right"));
                                 }
                                 //listViewChat.invalidate();
@@ -163,11 +126,12 @@ public class GroupMessageService extends IntentService {
         @Override
         protected void onPostExecute(final Boolean success) {
             if (success) {
-                sendBroadcast(new Intent("UpdateGroupMessage"));
+              //  sendBroadcast(new Intent("Update"));
+                stopSelf();
             } else {
 
             }
-            handler.postDelayed(runnableCode,3000);
+            //handler.postDelayed(runnableCode,3000);
         }
 
         @Override
@@ -175,11 +139,10 @@ public class GroupMessageService extends IntentService {
         }
     }
 
-    public GroupMessageService() {
-        super("MyGroupMessageService");
+    public KeyMessageService() {
+        super("MyMessageService");
     }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -187,7 +150,7 @@ public class GroupMessageService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        groupName = intent.getStringExtra("GROUP_NAME");
+        groupname = intent.getStringExtra("groupname");
         userEmail = SharedValues.getValue("USER_EMAIL");
         handler.post(runnableCode);
     }

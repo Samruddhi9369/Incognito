@@ -16,11 +16,11 @@ class MessageController extends Controller {
 	public function sendMessages(Request $request)
 	{
 		// Authenticate JWT Token
-		if(!JWTAuth::parseToken()->authenticate())
+		/*if(!JWTAuth::parseToken()->authenticate())
 		{
 			$res=['error'=>'auth failed'];
 			return response()->json($res);
-		}
+		}*/
 		$fields=$request->all();
 		$paramscheck= [
 			'sender' => 'required',
@@ -73,11 +73,11 @@ class MessageController extends Controller {
 	public function getMessages(Request $request){
 	
 	// Authenticate JWT Token
-		if(!JWTAuth::parseToken()->authenticate())
+	/*	if(!JWTAuth::parseToken()->authenticate())
 		{
 			$error=['error' => 'Authentication Failed'];
 			return response()->json($error);
-		}
+		}*/
 	
 		$parameters = $request->all();
 
@@ -111,11 +111,55 @@ class MessageController extends Controller {
 						      ->where('id','>',$lastread);
 				})->get();
 				//$message=Message::where('to',$parameters['to'])->where('from',$parameters['from'])->where('id','>'$parameters->lastread)->orderBy('created_at','asc')->get();
-				return response()->json($message);
+				return response()->json(['messages'=>$message]);
 				//return response()->json(['message'=>'error is here']);
 			}
 		}
 
+	}
+
+	/*
+		Input: Groupname, Receiver email id, last read
+	*/
+	public function getKeyMessages(Request $request){
+	
+	// Authenticate JWT Token
+	/*	if(!JWTAuth::parseToken()->authenticate())
+		{
+			$error=['error' => 'Authentication Failed'];
+			return response()->json($error);
+		}*/
+	
+		$parameters = $request->all();
+
+		/*$fieldcheck =[ 
+			'from'=>'required',
+			'lastread'=>'required',
+			'to'=>required
+
+		];*/	
+
+
+			$receiver=User::where('email',$parameters['to'])->first();
+			if(empty($receiver) || ($receiver->is_verified==false))
+			{
+				$response=['error'=>'Invalid Receiver email','code'=>'0'];
+				return response()->json($response);
+			}else
+			{
+				$group_name=$parameters['groupname'];
+				$to=$parameters['to'];
+				$lastread=$parameters['lastread'];
+				$message=Message::where(function($query) use ($to,$group_name,$lastread){
+						$query->where('to',$to)
+						      ->where('message','like','%'.$group_name.'%')
+						      ->where('id','>',$lastread);
+				})->get();
+				//$message=Message::where('to',$parameters['to'])->where('from',$parameters['from'])->where('id','>'$parameters->lastread)->orderBy('created_at','asc')->get();
+				return response()->json(['keymessages'=>$message]);
+				//return response()->json(['message'=>'error is here']);
+			}
+		
 	}
 
 }

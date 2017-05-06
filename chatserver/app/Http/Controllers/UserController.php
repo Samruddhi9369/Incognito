@@ -145,7 +145,7 @@ class UserController extends Controller {
 				$token=JWTAuth::fromUser($user);
 				//$token = $this->jwt->attempt($params);
 				$user->token = compact('token')['token'];
-				$response=['token'=>$token,'code'=>'4'];
+				$response=['token'=>$token,'code'=>'4','ID'=>$user->id];
 				return response()->json($response);
 			} else {
 				// Invalid verification code.

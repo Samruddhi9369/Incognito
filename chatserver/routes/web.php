@@ -28,5 +28,17 @@ $app->post('getuser','UserController@getUser');				// 1. sender_id  2. id  (JWT 
 
 $app->post('demo','DemoController@demo');
 
-$app->post('send','MessageController@sendMessages');			// sender,message,receive ------> Send Message 1 to 1.
+$app->post('send','MessageController@sendMessages');			// sender,message,receiver ------> Send Message 1 to 1.
 $app->post('getMessage','MessageController@getMessages');		// from,lastread,to  ---------> Retrieve Messages 1 to 1. 
+
+$app->post('createGroup','GroupController@createGroup');		// name, admin, members ------------> Create Group
+$app->post('getGroups','GroupController@getGroups');			// member email ------------> Get Groups
+$app->post('sendGroupMessage','GroupController@sendGroupMessage');	// message, sender, groupname ------------> send Group Message
+$app->post('getGroupMessage','GroupController@getGroupMessage');	// sender, groupname ------------> get Group Message
+$app->post('getKeyMessages','MessageController@getKeyMessages');	// to, groupname, lastread ------------> get Key Message
+
+$app->post('sendTeamMessage','GroupController@sendTeamMessage');	// message,from,to,group_name ---------> send group messages
+$app->post('getTeamMessage','GroupController@getTeamMessage');		// to,group_name,Last_Group_Read ---------> send group messages
+
+
+

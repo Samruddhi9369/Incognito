@@ -48,7 +48,15 @@
             android:name=".Service.GroupService"
             android:enabled="true"
             android:exported="false" />
-
+        <service
+            android:name=".Service.GroupMessageService"
+            android:enabled="true"
+            android:exported="false" />
+<!--
+        <service
+            android:name=".Service.KeyMessageService"
+            android:enabled="true"
+            android:exported="false" />-->
         <activity android:name=".Activity.GroupChatActivity"></activity>
     </application>
 

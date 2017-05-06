@@ -39,6 +39,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_ADMIN_EMAIL = "admin_email";
     private static final String KEY_MEMBERS = "members";
     private static final String KEY_GROUP_NAME = "group_name";
+    private static final String KEY_GROUP_KEY = "group_key";
     //Messages Table
     private static final String KEY_MESSAGE_ID = "message_id";
     private static final String KEY_DIRECTION = "direction";
@@ -71,6 +72,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 + KEY_GROUP_ID + " INTEGER PRIMARY KEY, "
                 + KEY_ADMIN_EMAIL + " TEXT, "
                 + KEY_MEMBERS + " TEXT, "
+                + KEY_GROUP_KEY + " TEXT, "
                 + KEY_GROUP_NAME + " TEXT "
                 + " );";
 
@@ -90,6 +92,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 + KEY_DIRECTION + " TEXT, "
                 + KEY_GROUP_NAME + " TEXT, "
                 + KEY_FROM_EMAIL + " TEXT, "
+                + KEY_TO_EMAIL + " TEXT, "
                 + KEY_MESSAGE + " TEXT "
                 + " );";
 
@@ -190,6 +193,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 
         values.put(KEY_MEMBERS,builder.toString());
         values.put(KEY_GROUP_NAME,group.getGroupName());
+        values.put(KEY_GROUP_KEY,"");
         // Inserting Row
         db.insert(TABLE_GROUPS, null, values);
         db.close();
@@ -278,17 +282,23 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_DIRECTION,groupMessage.getDirection());
         values.put(KEY_GROUP_NAME,groupMessage.getgroupName());
         values.put(KEY_FROM_EMAIL,groupMessage.getFrom());
+        values.put(KEY_TO_EMAIL,groupMessage.getTo());
         values.put(KEY_MESSAGE,groupMessage.getMessage());
         // Inserting Row
         db.insert(TABLE_GROUP_MESSAGES, null, values);
         db.close();
     }
 
-    public List<GroupMessage> getAllGroupMessages(String userEmail){
+    public List<GroupMessage> getAllGroupMessages(String userEmail, String groupName){
         List<GroupMessage> messages = new ArrayList<GroupMessage>();
         // Select All Query
         String selectQuery = "SELECT * FROM " +
-                TABLE_GROUP_MESSAGES;
+                TABLE_GROUP_MESSAGES +
+                " WHERE ("+
+                KEY_TO_EMAIL + "='" + userEmail+"'"+
+                " OR " +
+                KEY_FROM_EMAIL + "='" + userEmail+"'"+ ")" +
+                " AND "+ KEY_GROUP_NAME + "='" + groupName +"'";
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -298,6 +308,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
             do {
                 messages.add(new GroupMessage(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MESSAGE)),
                         cursor.getString(cursor.getColumnIndexOrThrow(KEY_FROM_EMAIL)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(KEY_TO_EMAIL)),
                         cursor.getString(cursor.getColumnIndexOrThrow(KEY_GROUP_NAME)),
                         cursor.getString(cursor.getColumnIndexOrThrow(KEY_DIRECTION))));
             } while (cursor.moveToNext());
@@ -315,7 +326,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 TABLE_GROUPS +
                 " WHERE " +
                 KEY_GROUP_NAME +" = "
-                + groupName;
+                + "'"+groupName+"'";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
@@ -332,4 +343,68 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         return members;
     }
 
+
+    // Method to update the groupkey acquired from the admin.
+    public void updateGroupKey(String groupname,String groupkey){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String whereClause = KEY_GROUP_NAME + "= ?";
+        String[] whereArgs = {groupname};
+        ContentValues newValues = new ContentValues();
+        newValues.put(KEY_GROUP_KEY, groupkey);
+        db.update(TABLE_GROUPS, newValues, whereClause, whereArgs);
+        // closing connection
+        db.close();
+    }
+
+    public String getGroupKey(String groupName) {
+        String groupkey="";
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] Projection = {
+                KEY_GROUP_KEY
+        };
+
+        String selection = KEY_GROUP_NAME + " = ?";
+        String[] selectionArgs = {""+groupName};
+
+        Cursor cursor = db.query(
+                TABLE_GROUPS,
+                Projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+
+        );
+        cursor.moveToNext();
+        groupkey = cursor.getString(0);
+        // closing connection
+        cursor.close();
+        db.close();
+        return groupkey;
+
+    }
+
+    public String getAdmin(String groupName){
+        String admin="";
+        String selectQuery = "SELECT * FROM " +
+                TABLE_GROUPS +
+                " WHERE " +
+                KEY_GROUP_NAME +" = "
+                + "'"+groupName+"'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                admin = cursor.getString(cursor.getColumnIndexOrThrow(KEY_ADMIN_EMAIL));
+                //groups.add(new Group(cursor.getString(cursor.getColumnIndexOrThrow(KEY_GROUP_NAME)),cursor.getString(cursor.getColumnIndexOrThrow(KEY_ADMIN_EMAIL)),members));
+            } while (cursor.moveToNext());
+        }
+        // closing connection
+        cursor.close();
+        db.close();
+        // returning groups
+        return admin;
+    }
 }
