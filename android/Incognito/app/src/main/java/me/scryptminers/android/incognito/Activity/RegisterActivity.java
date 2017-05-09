@@ -51,7 +51,7 @@ public class RegisterActivity extends AppCompatActivity {
     Boolean isRegistered = false;
     final String URL="https://scryptminers.me/register";
     /**
-     * Keep track of the login task to ensure we can cancel it if requested.
+     * Keep track of the registration task to ensure we can cancel it if requested.
      */
     private UserRegistrationTask mAuthTask = null;
     private String firstname;
@@ -80,9 +80,6 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-
-
-
         mFirstNameView = (EditText) findViewById(R.id.firstname);
         mLastNameView = (EditText) findViewById(R.id.lastname);
         mEmailView = (EditText) findViewById(R.id.email);
@@ -103,7 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     /**
-     * Shows the progress UI and hides the login form.
+     * Shows the progress UI and hides the form.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
@@ -139,7 +136,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     /**
-     * Represents an asynchronous login/registration task used to authenticate
+     * Represents an asynchronous registration task used to authenticate
      * the user.
      */
     public class UserRegistrationTask extends AsyncTask<String, Void, Boolean> {
@@ -251,12 +248,12 @@ public class RegisterActivity extends AppCompatActivity {
 
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
+            // There was an error; don't attempt registration and focus the first
             // form field with an error.
             focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
+            // perform the user registration attempt.
             showProgress(true);
             User user = new User(firstname,lastname,email,phone,password,password);
             mAuthTask = new UserRegistrationTask(user);
@@ -334,6 +331,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         return cancel;
     }
+
 
     private void resetErrors(){
         // Reset errors.

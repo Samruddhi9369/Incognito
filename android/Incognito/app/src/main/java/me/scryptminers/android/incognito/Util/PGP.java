@@ -25,10 +25,11 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-/**
- * Created by Samruddhi on 4/29/2017.
- */
-
+/*
+* This class defines functions
+* 1. To generate encryption and integration keys
+* 2. To encrypt and decrypt the message
+* */
 public class PGP {
     private static SecretKey encryptionKey;
     private static SecretKey integrationKey;
@@ -37,9 +38,8 @@ public class PGP {
     private static final String ENCRYPTION_MODE = "CTR";
     private static final String ENCRYPTION_PADDING = "NoPadding";
     private static final String HASH_ALGORITHM = "HmacSHA256";
-    //private static final String PROVIDER = "BC"; //Bouncy Castle
     private static final int AES_KEY_SIZE = 256; // bits
-    private static final int IV_SIZE = 16; // IV size = 16 bytes or 128 bits
+    private static final int IV_SIZE = 16; // IV size = 16 bytes = 128 bits
 
     // Define variables for use in RSA key exchange
     // Use RSA with OAEP padding, 2048 bit keys
@@ -61,8 +61,7 @@ public class PGP {
     }
     private static IvParameterSpec generateIV() {
         byte[] ivBytes = new byte[16];
-
-        // SecureRandom will automatically seed itself on the nextBytes call
+        // SecureRandom class automatically seeds itself on the nextBytes call
         SecureRandom random = new SecureRandom();
         random.nextBytes(ivBytes);
 
@@ -80,8 +79,7 @@ public class PGP {
             byte[] encKey = encryptionKey.getEncoded();
             byte[] intKey = integrationKey.getEncoded();
 
-            // Concatenate the two keys
-            // k(e) + k(i)
+            // Concatenate the encryption key and integration key
             byte[] keys = new byte[encKey.length + intKey.length];
             System.arraycopy(encKey, 0, keys, 0, encKey.length);
             System.arraycopy(intKey, 0, keys, intKey.length, intKey.length);
@@ -91,7 +89,6 @@ public class PGP {
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodeKey);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             PublicKey receiverPublicKey = keyFactory.generatePublic(keySpec);
-            //PublicKey receiverPublicKey = keyExchangeInstance.getPublicKey(receiver);
             byte[] encryptedKeys = encryptKeys(keys, receiverPublicKey);
 
             // Append result of AES encryption with RSA-encrypted keys
@@ -110,135 +107,18 @@ public class PGP {
     public static byte[] encryptKeys(byte[] plaintext, PublicKey key) throws InvalidKeyException,
             IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
 
-        Cipher cipher = Cipher.getInstance(ALGORITHM + "/" + MODE_OF_OPERATION + "/" + PADDING);//, PROVIDER);
+        Cipher cipher = Cipher.getInstance(ALGORITHM + "/" + MODE_OF_OPERATION + "/" + PADDING);
         cipher.init(Cipher.ENCRYPT_MODE, key);
 
         return cipher.doFinal(plaintext);
     }
-
-    public static byte[] encryptDemo(String cleartext,SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        final int AES_KEYLENGTH = 128;
-        byte[] iv = new byte[AES_KEYLENGTH / 8];
-        SecureRandom prng = new SecureRandom();
-        prng.nextBytes(iv);
-        byte[] message = new byte[iv.length+cleartext.getBytes().length];
-        Cipher aesCipherForEncryption = Cipher.getInstance("AES/CBC/PKCS7PADDING");
-        aesCipherForEncryption.init(Cipher.ENCRYPT_MODE, key,new IvParameterSpec(iv));
-        byte[] byteDataToEncrypt = cleartext.getBytes();
-        System.arraycopy(iv, 0, message, 0, iv.length);
-        byte[] byteCipherText = aesCipherForEncryption.doFinal(byteDataToEncrypt);
-        System.arraycopy(byteCipherText,0,message,iv.length,byteCipherText.length);
-
-        return message;
-    }
-
-    public static  byte[] decryptDemo(String ciphertext, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException {
-        final int AES_KEYLENGTH = 128;
-        byte[] iv = new byte[AES_KEYLENGTH / 8];
-        Cipher aesCipherForDecryption = Cipher.getInstance("AES/CBC/PKCS7PADDING");
-        byte[] ciphertextb = ciphertext.getBytes();
-
-        byte[] todecrppt = new byte[ciphertextb.length - iv.length];
-
-        // Prepend IV to the ciphertext
-        System.arraycopy(ciphertextb, 0, iv, 0, iv.length);
-        System.arraycopy(ciphertextb, iv.length, todecrppt, 0, ciphertextb.length - iv.length);
-
-        aesCipherForDecryption.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
-        byte[] byteDecryptedText = aesCipherForDecryption.doFinal(todecrppt);
-        return byteDecryptedText;
-    }
-
-
-    public static byte[] encryptGroupMessage(String plaintext,SecretKey key) throws BadPaddingException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, UnsupportedEncodingException {
-        /*Cipher cipher =Cipher.getInstance("AES/CBC/PKCS5PADDING");
-        cipher.init(Cipher.ENCRYPT_MODE,key);
-        return cipher.doFinal(plaintext.getBytes());*/
-        //IvParameterSpec iv = generateIV();
-        //String cipherTransformation = ENCRYPTION_ALGORITHM + "/" + ENCRYPTION_MODE + "/" + ENCRYPTION_PADDING;
-       String cipherTransformation = ENCRYPTION_ALGORITHM + "/CBC/PKCS5PADDING";
-        Cipher cipher = Cipher.getInstance(cipherTransformation);//, PROVIDER);
-        // Generate FRESH keys for every encrypted message
-        byte[] ivBytes = new byte[cipher.getBlockSize()];
-
-        // SecureRandom will automatically seed itself on the nextBytes call
-        SecureRandom random = new SecureRandom();
-        random.nextBytes(ivBytes);
-
-        IvParameterSpec iv = new IvParameterSpec(ivBytes);
-        // Encrypt the plaintext
-        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-        byte[] ciphertext = cipher.doFinal(plaintext.getBytes());
-        byte[] message = new byte[iv.getIV().length + ciphertext.length];
-
-        // Prepend IV to the ciphertext
-        System.arraycopy(iv.getIV(), 0, message, 0, iv.getIV().length);
-
-        // Attach the ciphertext
-        System.arraycopy(ciphertext, 0, message, iv.getIV().length, ciphertext.length);
-
-        return ciphertext;
-        /*//initialize the secret key with the appropriate algorithm
-        SecretKeySpec skeySpec = new SecretKeySpec(rawAesKey, ENCRYPTION_ALGORITHM);
-
-        //get an instance of the symmetric cipher
-        Cipher aesCipher = Cipher.getInstance(ENCRYPTION_ALGORITHM + "/CBC/PKCS5PADDING");
-
-        //set it to encrypt mode, with the generated key
-        aesCipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-        //get the initialization vector being used (to be returned)
-        byte[] aesIV = aesCipher.getIV();
-
-        //encrypt the data
-        byte[] encryptedData = aesCipher.doFinal(plaintext.getBytes("UTF-8"));
-        return encryptedData;*/
-    }
-
-    public static byte[] decryptGroupMessage(String ciphertext, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, UnsupportedEncodingException {
-        /*Cipher cipher =Cipher.getInstance("AES/CBC/PKCS5PADDING");
-        cipher.init(Cipher.DECRYPT_MODE,key);
-        return cipher.doFinal(ciphertext.getBytes());*/
-        byte[] ciphertextMessage = Base64.decode(ciphertext);
-        //String cipherTransformation = ENCRYPTION_ALGORITHM + "/" + ENCRYPTION_MODE + "/" + ENCRYPTION_PADDING;
-        String cipherTransformation = ENCRYPTION_ALGORITHM +"/CBC/PKCS5PADDING";
-        Cipher cipher = Cipher.getInstance(cipherTransformation);//, PROVIDER);
-        // Extract the IV
-        byte[] iv = new byte[cipher.getBlockSize()];
-        System.arraycopy(ciphertextMessage, 0, iv, 0, IV_SIZE);
-
-        // Extract the message
-        int messageLengthInBytes = ciphertextMessage.length - iv.length;
-        byte[] decodedMessage = new byte[messageLengthInBytes];
-        System.arraycopy(ciphertextMessage, iv.length, decodedMessage, 0, messageLengthInBytes);
-        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
-        // Decrypt
-        byte[] plaintext = cipher.doFinal(decodedMessage);
-        return plaintext;
-        //initialize the secret key with the appropriate algorithm
-        /*SecretKeySpec skeySpecDec = new SecretKeySpec(rawAesKey, ENCRYPTION_ALGORITHM);
-
-        //get an instance of the symmetric cipher
-        Cipher aesCipherDec = Cipher.getInstance(ENCRYPTION_ALGORITHM +"/CBC/PKCS5PADDING");
-        Cipher aesCipher = Cipher.getInstance(ENCRYPTION_ALGORITHM +"/CBC/PKCS5PADDING");
-        aesCipher.init(Cipher.ENCRYPT_MODE, skeySpecDec);
-        byte[] aesIV = aesCipher.getIV();
-        //set it to decrypt mode with the AES key, and IV
-        aesCipherDec.init(Cipher.DECRYPT_MODE, skeySpecDec, new IvParameterSpec(aesIV));
-
-        //decrypt and return the data
-        byte[] decryptedData = aesCipherDec.doFinal(ciphertext.getBytes("UTF-8"));
-
-        return new String(decryptedData, "UTF-8");*/
-    }
-
-
 
     public static byte[] encrypt(String plaintext) throws InvalidKeyException,
             InvalidAlgorithmParameterException, IllegalBlockSizeException,
             BadPaddingException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
         IvParameterSpec iv = generateIV();
         String cipherTransformation = ENCRYPTION_ALGORITHM + "/" + ENCRYPTION_MODE + "/" + ENCRYPTION_PADDING;
-        Cipher cipher = Cipher.getInstance(cipherTransformation);//, PROVIDER);
+        Cipher cipher = Cipher.getInstance(cipherTransformation);
         // Generate FRESH keys for every encrypted message
         generateEncryptionIntegrationKeys();
 
@@ -272,23 +152,17 @@ public class PGP {
     }
 
     /**
-     * Decrypt the given ciphertext using the given key
-     *
-     * @param ciphertext - Message to be decrypted
-     * @param encryptionKey - Symmetric key used for AES decryption
-     * @param integrityKey - Symmetric key used for HMAC tag
-     * @return plaintext - the original message decrypted
-     * @throws InvalidAlgorithmParameterException
-     * @throws InvalidKeyException
-     * @throws BadPaddingException
-     * @throws IllegalBlockSizeException
-     * @throws NoSuchAlgorithmException
+     * Description: Decrypt ciphertext using the encryption key
+     * 1. Get the message to be decrypt
+     * 2. Get encryption key
+     * 3. Get integration key
+     * 4. Get the plaintext by decryption of the ciphertext
      */
     public static String decrypt(byte[] ciphertext, SecretKey encryptionKey, SecretKey integrityKey)
             throws InvalidKeyException, InvalidAlgorithmParameterException,
             IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException {
         String cipherTransformation = ENCRYPTION_ALGORITHM + "/" + ENCRYPTION_MODE + "/" + ENCRYPTION_PADDING;
-        Cipher cipher = Cipher.getInstance(cipherTransformation);//, PROVIDER);
+        Cipher cipher = Cipher.getInstance(cipherTransformation);
         // Extract the IV
         byte[] iv = new byte[IV_SIZE];
         System.arraycopy(ciphertext, 0, iv, 0, IV_SIZE);
@@ -306,24 +180,23 @@ public class PGP {
         // Check HMAC tags
         byte[] myTag = HmacSHA256(decodedMessage, integrityKey);
 
-        // If the tags match, no tampering occurred
-        // Decrypt message
+        // If the tags match, no message tampering occurred
         if (HmacVerify(tag, myTag)) {
+            // Decrypt message using encryption key
             cipher.init(Cipher.DECRYPT_MODE, encryptionKey, new IvParameterSpec(iv));
 
             // Decrypt
             byte[] plaintext = cipher.doFinal(decodedMessage);
             return new String(plaintext);
         } else {
-            // If the tags don't match, tampering occurred
-            // Don't decrypt
+            // Tags don't match. Message tampering has been occurred
+            // Throw error
             return new String("Error in decryption");
         }
     }
 
     public static String decryptMessage(String message, String receiverPrivateKey) {
         try {
-            //Log.e("message",message);
             // Decode the message from Base64
             byte[] ciphertext = Base64.decode(message);
             byte[] receiverPrKey = Base64.decode(receiverPrivateKey);
@@ -332,7 +205,6 @@ public class PGP {
             PrivateKey recPrivateKey = keyFactory.generatePrivate(keySpec);
             // Extract the symmetric keys
             byte[] keys = new byte[getRSAKeySizeInBytes()];
-            //Log.e("C-Length",""+ciphertext.length);
             System.arraycopy(ciphertext, ciphertext.length - keys.length, keys, 0, keys.length);
 
             // Decrypt the keys with RSA
@@ -376,11 +248,6 @@ public class PGP {
         SecretKeySpec sk = new SecretKeySpec(ik, HASH_ALGORITHM);
         sha256_HMAC.init(sk);
         return sha256_HMAC.doFinal(ciphertext);
-    }
-
-    public static String CipherTagConcatenate(String ciphertext, String HmacTag){
-        String combined = ciphertext+HmacTag;
-        return combined;
     }
 
     public static boolean HmacVerify(byte[] tag1, byte[] tag2){

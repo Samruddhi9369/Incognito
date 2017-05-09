@@ -163,7 +163,16 @@ public class LoginActivity extends AppCompatActivity {
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
-    // Function : Post Login Step 1
+
+    /*
+    * Function Name: Post Login Step 1
+    * Description: This function does following tasks:
+    *   1. Send user email to the server
+    *   2. Get Challenge and Salt
+    *   3. Calculate Password Hash
+    *   4. Generate the tag from challenge and password
+    * Input Parameters: Email
+    * */
     public boolean postLoginStepOne(final Map<String,String> userLoginMap){
         try {
             // Simulate network access.
@@ -199,7 +208,16 @@ public class LoginActivity extends AppCompatActivity {
         }
         return isPostLoginOne;
     }
-    // Function: Post Login Step 2
+
+    /*
+    * Function Name: Post Login Step 2
+    * Description: This function does following tasks:
+    *   1. Send user email, generate tag in step 1 to the server
+    *   2. Get the JWT token if the Tag is verified
+    *   3. Calculate Password Hash
+    *   4. Login Successful
+    * Input Parameters: Email, Tag
+    * */
     public boolean postLoginStepTwo(final Map<String,String> userTagMap){
         try {
             // Simulate network access.
@@ -238,8 +256,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
+     * Represents an asynchronous login task used to authenticate the user.
+     * It performs two step authentication process using functions postLoginStepOne and postLoginStepTwo
      */
     public class UserLoginTask extends AsyncTask<String, String, Boolean> {
 
@@ -300,11 +318,23 @@ public class LoginActivity extends AppCompatActivity {
             showProgress(false);
         }
     }
+
+    /*
+    * Function Name: User Registration
+    * Description: Starts Registration Activity
+    * */
     private void registerUser() {
         Intent i = new Intent(this, RegisterActivity.class);
         startActivity(i);
     }
 
+    /*
+    * Function Name: validateEmailAndPassword
+    * Description: This function does following tasks:
+    *   1. Check for the valid password
+    *   2. Check for the valid email address
+    *   3. Disply error message if invalid
+    * */
     private boolean validateEmailAndPassword(boolean cancel){
 
         Validations validator = new Validations();
@@ -331,6 +361,10 @@ public class LoginActivity extends AppCompatActivity {
         return cancel;
     }
 
+    /*
+    * Function Name: resetErrors
+    * Description: Resets all the errors set by function validateEmailAndPassword
+    * */
     private void resetErrors(){
         // Reset errors.
         mEmailView.setError(null);

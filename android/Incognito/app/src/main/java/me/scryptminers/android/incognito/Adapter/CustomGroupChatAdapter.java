@@ -46,7 +46,7 @@ public class CustomGroupChatAdapter extends ArrayAdapter<GroupMessage> {
             row = inflater.inflate(R.layout.left_message_row, parent, false);
         }
         chatText = (TextView) row.findViewById(R.id.messageText);
-        chatText.setText(message.getMessage());
+        chatText.setText(message.getFrom()+": "+message.getMessage());
         return row;
     }
 }

@@ -55,7 +55,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Category table friends query
+        // Create table friends query
         String CREATE_FRIENDS_TABLE = "CREATE TABLE " +
                 TABLE_FRIENDS + "("
                 + KEY_FRIEND_ID + " INTEGER PRIMARY KEY, "
@@ -66,7 +66,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 + KEY_PHONE + " TEXT, "
                 + KEY_PUBLIC_KEY + " TEXT "
                 + " );";
-
+        // Create table groups query
         String CREATE_GROUPS_TABLE = "CREATE TABLE " +
                 TABLE_GROUPS + "("
                 + KEY_GROUP_ID + " INTEGER PRIMARY KEY, "
@@ -76,7 +76,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 + KEY_GROUP_NAME + " TEXT "
                 + " );";
 
-
+        // Create table messages query
         String CREATE_MESSAGES_TABLE = "CREATE TABLE " +
                 TABLE_MESSAGES + "("
                 + KEY_MESSAGE_ID + " INTEGER PRIMARY KEY, "
@@ -85,7 +85,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
                 + KEY_TO_EMAIL + " TEXT, "
                 + KEY_MESSAGE + " TEXT "
                 + " );";
-
+        // Create table group messages query
         String CREATE_GROUP_MESSAGES_TABLE = "CREATE TABLE " +
                 TABLE_GROUP_MESSAGES + "("
                 + KEY_MESSAGE_ID + " INTEGER PRIMARY KEY, "
@@ -113,7 +113,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-
+    // Add a new friend into the table friends
     public void insertFriend(User user){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -129,6 +129,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         // Closing database connection
     }
 
+    // Get the public key of the friend
     public String getFriendPublicKey(String email){
         String publicKey="";
         SQLiteDatabase db = this.getReadableDatabase();
@@ -157,6 +158,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         return publicKey;
     }
 
+    // Get all friends of the user
     public List<User> getAllUsers(){
         List<User> friends = new ArrayList<User>();
         // Select All Query
@@ -177,7 +179,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         return friends;
     }
 
-
+    // Add a group into the table Groups
     public void insertGroup(Group group){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -200,6 +202,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         // Closing database connection
     }
 
+    // Get all groups whose user as an admin
     public List<Group> getAllGroups(){
         List<Group> groups = new ArrayList<Group>();
         // Select All Query
@@ -221,6 +224,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         return groups;
     }
 
+    // Add a message into the database
     public void addMessage(Message message){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -233,16 +237,10 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Get all messages from the database
     public List<Message> getAllMessages(String userEmail, String friendEmail){
         List<Message> messages = new ArrayList<Message>();
         // Select All Query
-        /*String selectQuery = "SELECT * FROM " +
-                TABLE_MESSAGES +
-                " WHERE " +
-                KEY_FROM_EMAIL + " = " +
-                "'"+email+"'" +" OR "+
-                KEY_TO_EMAIL + " = " +
-                "'"+email+"'";*/
 
         String selectQuery = "SELECT * FROM " +
                 TABLE_MESSAGES +
@@ -275,6 +273,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         return messages;
     }
 
+    // Add a group message into the table Group Messages
     //direction, group_name, from, message
     public void addGroupMessage(GroupMessage groupMessage){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -289,6 +288,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Get all group messages
     public List<GroupMessage> getAllGroupMessages(String userEmail, String groupName){
         List<GroupMessage> messages = new ArrayList<GroupMessage>();
         // Select All Query
@@ -320,6 +320,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         return messages;
     }
 
+    // Get all members of the group
     public String[] getAllGroupMembers(String groupName){
         String[] members={};
         String selectQuery = "SELECT * FROM " +
@@ -343,7 +344,6 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         return members;
     }
 
-
     // Method to update the groupkey acquired from the admin.
     public void updateGroupKey(String groupname,String groupkey){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -356,6 +356,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Get the group key of the group
     public String getGroupKey(String groupName) {
         String groupkey="";
         SQLiteDatabase db = this.getReadableDatabase();
@@ -385,6 +386,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+    // Get admin of the group
     public String getAdmin(String groupName){
         String admin="";
         String selectQuery = "SELECT * FROM " +

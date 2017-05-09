@@ -36,7 +36,10 @@ import me.scryptminers.android.incognito.Model.User;
 import me.scryptminers.android.incognito.R;
 import me.scryptminers.android.incognito.Util.KeyGenerator;
 import me.scryptminers.android.incognito.Util.SharedValues;
-
+/*
+* This class is used to add friends by scanning the QR code from the friend's device.
+* Result: User gets the public key of the friend which will be used while generating the encrypted message
+* */
 public class QRCodeScannerActivity extends AppCompatActivity {
 
     private Button btnScan;
@@ -65,6 +68,11 @@ public class QRCodeScannerActivity extends AppCompatActivity {
 
     }
 
+    /*
+    * Function Name: scanQRCode
+    * Description: This function does following tasks:
+    *   1. Scans a QR code
+    * */
     public void scanQRCode(){
         IntentIntegrator intentIntegrator = new IntentIntegrator(activity);
         intentIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
@@ -75,6 +83,12 @@ public class QRCodeScannerActivity extends AppCompatActivity {
         intentIntegrator.initiateScan();
     }
 
+    /*
+    * Function Name: onActivityResult
+    * Description: This function is called when the scanning is completed:
+    *   1. Get the data from the scanned QR code
+    *   2. Get Public key of friend
+    * */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
@@ -96,7 +110,9 @@ public class QRCodeScannerActivity extends AppCompatActivity {
         }
     }
 
-
+    /**
+     * Represents an asynchronous QRCodeScanner task used to get the user details of friend
+     */
     public class QRCodeScanner extends AsyncTask<String, Void, Boolean> {
 
         RequestQueue requestQueue;
@@ -164,7 +180,6 @@ public class QRCodeScannerActivity extends AppCompatActivity {
             if(isScanned)
             {
                 Intent startMainActivity = new Intent(QRCodeScannerActivity.this,MainActivity.class);
-                //startMainActivity.putExtra("friend",friend);
                 startActivity(startMainActivity);
             }
             else
@@ -175,6 +190,10 @@ public class QRCodeScannerActivity extends AppCompatActivity {
 
         }
     }
+
+    /**
+     * Shows the progress UI and hides the login form.
+     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow

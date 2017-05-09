@@ -59,7 +59,6 @@ public class ChatActivity extends AppCompatActivity {
     public static List<Message> msgs;
     private BroadcastReceiver broadcastReceiver;
     private boolean isRegistered;
-    String[] elementNames= new String[5];
     ChatDatabaseHelper db;
     Intent msgIntent;
     @Override
@@ -72,6 +71,7 @@ public class ChatActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(friendName);
         buttonSend = (ImageView) findViewById(R.id.send);
         Log.e("FRIEND",friendEmail);
+        //Starts a message service to recieve any incoming messages
         msgIntent = new Intent(this, MessageService.class);
         msgIntent.putExtra("FRIEND_EMAIL", friendEmail);
         startService(msgIntent);
@@ -81,46 +81,26 @@ public class ChatActivity extends AppCompatActivity {
         msgs = new ArrayList<Message>();
         msgs = db.getAllMessages(userEmail,friendEmail);
         listViewChat.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-
         customChatAdapter = new CustomChatAdapter(getApplicationContext(), R.layout.right_message_row,msgs);
         listViewChat.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
         listViewChat.setAdapter(customChatAdapter);
-        //listViewChat.invalidate();
-
+        // Update the chat adapter when messages are received from the receiver
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-               // msgs.clear();
-                //msgs = db.getAllMessages(userEmail);
                 Log.d("Message","In Onreceive");
                 customChatAdapter.notifyDataSetChanged();
-                //listViewChat.invalidate();
-                //listViewChat.setSelection(customChatAdapter.getCount() - 1);
             }
         };
 
-        //ReceiveMessageTask receiveMessageTask= new ReceiveMessageTask();
-        //receiveMessageTask.execute("dsds");
 
         messageToSend = (EditText) findViewById(R.id.messageToSend);
-       /* messageToSend.setOnKeyListener(new View.OnKeyListener() {
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    return sendChatMessage(messageToSend.getText().toString());
-                }
-                return false;
-            }
-        });*/
-        //ReceiveMessageTask receiveMessageTask = new ReceiveMessageTask();
-        //receiveMessageTask.execute();
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 sendChatMessage(messageToSend.getText().toString());
             }
         });
-
-        //listViewChat.setAdapter(customChatAdapter);
 
         //to scroll the list view to bottom on data change
         customChatAdapter.registerDataSetObserver(new DataSetObserver() {
@@ -131,30 +111,33 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+    /*
+    * Function Name: sendChatMessage
+    * Description: This function does following tasks:
+    *   1. Crate Message object
+    *   2. Get receiver's public key
+    *   3. Encrypt message using receiver's public key
+    *   4. Call async task to send a message
+    * Input Parameters: message
+    * */
     private boolean sendChatMessage(String message){
-
         // from to message direction
         Message msg = new Message(userEmail,friendEmail,message,"left");
         db.addMessage(msg);
         messageToSend.setText("");
-        //customChatAdapter.notifyDataSetChanged();
-        //msgs.clear();
-        //msgs = db.getAllMessages(userEmail);
         msgs.add(msg);
         customChatAdapter.notifyDataSetChanged();
         listViewChat.invalidate();
         String receiverPublicKey = db.getFriendPublicKey(friendEmail);
         String encrypted_message = "";
-
-            //encrypted_message = PGPFunctions.generateEncryptedMessage(message,receiverPublicKey);
-            encrypted_message = PGP.encryptMessage(message,receiverPublicKey);
-
+        encrypted_message = PGP.encryptMessage(message,receiverPublicKey);
         SendMessageTask sendMessageTask = new SendMessageTask(new Message(userEmail,friendEmail,encrypted_message,"left"));
         sendMessageTask.execute();
-
         return true;
     }
-
+    /*
+    * Description: Async Task which sends the messages as a JSON Object using Volley
+    * */
     public class SendMessageTask extends AsyncTask<String, Void, Boolean> {
 
         private final Message message;
@@ -181,7 +164,6 @@ public class ChatActivity extends AppCompatActivity {
                     public void onResponse(JSONObject response) {
                         try {
                             String message_received  = response.getString("message");
-                            //customChatAdapter.add(new Message(friendName,message_received,"left"));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -205,7 +187,6 @@ public class ChatActivity extends AppCompatActivity {
         protected void onPostExecute(final Boolean success) {
 
             if (success) {
-
                 //refresh chat adapter list view
             } else {
 
@@ -214,111 +195,16 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
-    /*public class ReceiveMessageTask extends AsyncTask<String, Void, Boolean> {
-
-        private RequestQueue requestQueue;
-        private JsonObjectRequest jsonObjectRequest;
-        private final String URL="https://scryptminers.me/getMessage";
-
-        public ReceiveMessageTask() {
-
-        }
-
-        @Override
-        protected Boolean doInBackground(String... params) {
-            Map<String,String> userMap = new HashMap<>();
-            userMap.put("from",friendEmail);
-            userMap.put("to",SharedValues.getValue("USER_EMAIL"));
-            userMap.put("lastread","0");
-            try {
-                // Simulate network access.
-                requestQueue = Volley.newRequestQueue(getApplicationContext());
-                jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, URL, new JSONObject(userMap), new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray jsonArray = response.getJSONArray("messages");
-                            //String message_received  = response.getString("message");
-                            ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
-                            String receiverPublicKey = db.getFriendPublicKey(friendEmail);
-                            for (int i = 0, size = jsonArray.length(); i < size; i++)
-                            {
-                                JSONObject objectInArray = jsonArray.getJSONObject(i);
-                                String ciphertext = objectInArray.getString("message");
-                                String message = PGP.decryptMessage(ciphertext,SharedValues.getValue("PRIVATE_KEY"));
-                                msgs.add(new Message(friendEmail,userEmail,message,"right"));
-                            }
-                            listViewChat.invalidate();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(ChatActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-                requestQueue.add(jsonObjectRequest);
-                while (!jsonObjectRequest.hasHadResponseDelivered())
-                    Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                Log.d("error",e.toString());
-            }
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            if (success) {
-                listViewChat.invalidate();
-                //refresh chat adapter list view
-            } else {
-
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-        }
-    }
-*/
     @Override
     public void onStart() {
         super.onStart();
         if (!isRegistered) {
             registerReceiver(broadcastReceiver, new IntentFilter("Update"));
             isRegistered = true;
-
-/*            broadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    // msgs.clear();
-                    //msgs = db.getAllMessages(userEmail);
-                    customChatAdapter.notifyDataSetChanged();
-                    listViewChat.invalidate();
-                    //listViewChat.setSelection(customChatAdapter.getCount() - 1);
-                }
-            };*/
-
         }
 
     }
 
-    /*@Override
-    protected void onPostResume() {
-        super.onPostResume();
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                // msgs.clear();
-                //msgs = db.getAllMessages(userEmail);
-                customChatAdapter.notifyDataSetChanged();
-                listViewChat.invalidate();
-                //listViewChat.setSelection(customChatAdapter.getCount() - 1);
-            }
-        };
-    }*/
 
     @Override
     public void onStop() {

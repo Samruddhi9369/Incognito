@@ -31,7 +31,11 @@ import me.scryptminers.android.incognito.Service.MessageService;
 import me.scryptminers.android.incognito.Util.HashFunctions;
 import me.scryptminers.android.incognito.Util.KeyGenerator;
 import me.scryptminers.android.incognito.Util.SharedValues;
-
+/*
+    * This activity holds two fragments
+    * Fragment 1 : To display list of friends
+    * Fragment 2 : To display list of groups
+    * */
 public class MainActivity extends AppCompatActivity {
 
     /**
@@ -60,25 +64,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //KeyGenerator.generateKeys();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         SharedValues.init(getApplicationContext());
-        //Service for get groups
+        //Start a Service for get groups
         groupIntent = new Intent(this, GroupService.class);
         startService(groupIntent);
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                // msgs.clear();
-                //msgs = db.getAllMessages(userEmail);
                 Log.d("Message","In Onreceive");
                 GroupListFragment.customGroupsAdapter.notifyDataSetChanged();
                 GroupListFragment.listViewGroups.invalidate();
-                //listViewChat.setSelection(customChatAdapter.getCount() - 1);
             }
         };
-
+        /*
+        *  On click of add button on the screen:
+        *  If current active fragment is Friends Fragment, call QRCodeScannerActivity to add new friends
+        *  If current active fragment is Groups Fragment, call CreateGroupActivity to create new group*/
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -156,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_settings:
                 return true;
             case R.id.action_public_key:
+                // Contains the public key of the user
                 Intent intent = new Intent(this,QRCodeGeneratorActivity.class);
                 startActivity(intent);
                 break;
@@ -172,17 +176,6 @@ public class MainActivity extends AppCompatActivity {
         if (!isRegistered) {
             registerReceiver(broadcastReceiver, new IntentFilter("Groups"));
             isRegistered = true;
-
-/*            broadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    // msgs.clear();
-                    //msgs = db.getAllMessages(userEmail);
-                    customChatAdapter.notifyDataSetChanged();
-                    listViewChat.invalidate();
-                    //listViewChat.setSelection(customChatAdapter.getCount() - 1);
-                }
-            };*/
 
         }
 

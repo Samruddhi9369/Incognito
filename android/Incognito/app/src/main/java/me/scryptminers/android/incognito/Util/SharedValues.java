@@ -3,10 +3,6 @@ package me.scryptminers.android.incognito.Util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/**
- * Created by Suyash on 4/11/2017.
- */
-
 public class SharedValues {
     public static SharedPreferences prefs;
     public static final String DELIMITER = "%%%";

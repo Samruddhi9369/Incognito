@@ -12,7 +12,13 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 public class HashFunctions {
-
+    /*
+    * Function : HMAC
+    * Description : Generates the tag
+    *   1. Get the challenge
+    *   2. Get the password hash
+    *   3. Generate password hash using HMAC SHA-512 algorithm
+    * */
     public static String HMAC(String key, String data) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
         Mac sha512_HMAC = Mac.getInstance("HmacSHA512");
         SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(), "HmacSHA512");
@@ -26,6 +32,13 @@ public class HashFunctions {
         return sb.toString();
     }
 
+    /*
+    * Function : getPasswordHash
+    * Description : Generates the password hash
+    *   1. Get the password
+    *   2. Get the salt
+    *   3. Generate password hash using SHA-512 algorithm
+    * */
     public static String getPasswordHash(String passwordToHash, String salt) throws UnsupportedEncodingException{
         String generatedPassword = null;
         try {
@@ -44,23 +57,4 @@ public class HashFunctions {
         return generatedPassword;
     }
 
-    public static String base64Encode(byte[] b) {
-        try {
-            return new String(Base64.encode(b), "ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String hex(byte[] bytes) {
-        try {
-            return new String(Hex.encode(bytes), "ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static byte[] base64Decode(String str) {
-        return Base64.decode(str);
-    }
 }

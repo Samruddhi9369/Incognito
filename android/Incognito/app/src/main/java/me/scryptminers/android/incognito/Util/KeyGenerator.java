@@ -17,14 +17,13 @@ import java.security.PublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 
-/**
- * Created by Samruddhi on 4/10/2017.
- */
-
 public class KeyGenerator {
-
+    /*
+    * Function : generateKeys
+    * Description : Generates the public and private key for the user when user verification is done successfully
+    *   1. Generate 2048 bit public and private keys from RSA algorithm
+    * */
     public static void generateKeys() {
-        //ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp224k1");
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);

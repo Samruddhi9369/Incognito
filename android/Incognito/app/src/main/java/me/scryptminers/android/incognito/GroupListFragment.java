@@ -49,27 +49,11 @@ public class GroupListFragment extends Fragment {
 
         listViewGroups = (ListView) view.findViewById(R.id.listViewGroups);
         ChatDatabaseHelper db = new ChatDatabaseHelper(getActivity());
-        //User user = new User("sam","kal","email","8978675645","pwd","cpwd");
 
-        /*groupIntent = new Intent(getActivity(), GroupService.class);
-        getActivity().startService(groupIntent);
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                // msgs.clear();
-                //msgs = db.getAllMessages(userEmail);
-                Log.d("Message","In Onreceive");
-                customGroupsAdapter.notifyDataSetChanged();
-                //listViewChat.invalidate();
-                //listViewChat.setSelection(customChatAdapter.getCount() - 1);
-            }
-        };*/
-
+        // Load groups in the groups adapter
         groups = db.getAllGroups();
         customGroupsAdapter = new CustomGroupsAdapter(getContext(), R.layout.custom_row, groups);
         listViewGroups.setAdapter(customGroupsAdapter);
-        //listViewGroups.invalidate();
-        //customGroupsAdapter.notifyDataSetChanged();
         registerForContextMenu(listViewGroups);
         listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -81,55 +65,5 @@ public class GroupListFragment extends Fragment {
         });
         return view;
     }
-
-    public void loadGroups(){
-        ChatDatabaseHelper db = new ChatDatabaseHelper(getActivity());
-        //User user = new User("sam","kal","email","8978675645","pwd","cpwd");
-
-        groups = db.getAllGroups();
-        listViewGroups.setAdapter(new CustomGroupsAdapter(getContext(), R.layout.custom_row, groups));
-        /*listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Intent intent = new Intent(getActivity(), ChatActivity.class);
-                //intent.putExtra("FRIEND_NAME",groups.get(position).getFirstName());
-                //intent.putExtra("FRIEND_EMAIL",groups.get(position).getEmail());
-                //startActivity(intent);
-            }
-        });*/
-    }
-
-    /*@Override
-    public void onStart() {
-        super.onStart();
-        if (!isRegistered) {
-            getActivity().registerReceiver(broadcastReceiver, new IntentFilter("Groups"));
-            isRegistered = true;
-
-*//*            broadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    // msgs.clear();
-                    //msgs = db.getAllMessages(userEmail);
-                    customChatAdapter.notifyDataSetChanged();
-                    listViewChat.invalidate();
-                    //listViewChat.setSelection(customChatAdapter.getCount() - 1);
-                }
-            };*//*
-
-        }
-
-    }
-
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (isRegistered) {
-            getActivity().unregisterReceiver(broadcastReceiver);
-            isRegistered = false;
-        }
-        getActivity().stopService(groupIntent);
-    }*/
 
 }

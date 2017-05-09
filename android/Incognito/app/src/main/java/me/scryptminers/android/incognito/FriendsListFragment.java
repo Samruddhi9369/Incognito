@@ -33,19 +33,17 @@ public class FriendsListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_friends_list, container, false);
         // Inflate the layout for this fragment
-
         listViewFriends = (ListView) view.findViewById(R.id.listViewFriends);
         loadFriends();
         registerForContextMenu(listViewFriends);
         return view;
     }
 
+    // Load friends in the friends adapter
     public void loadFriends(){
         ChatDatabaseHelper db = new ChatDatabaseHelper(getActivity());
-        //User user = new User("sam","kal","email","8978675645","pwd","cpwd");
 
         friends = db.getAllUsers();
-        // friends.add(user);
         listViewFriends.setAdapter(new CustomFriendsAdapter(getContext(), R.layout.custom_row, friends));
         listViewFriends.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

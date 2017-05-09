@@ -20,7 +20,9 @@ import java.security.SecureRandom;
 
 import me.scryptminers.android.incognito.R;
 import me.scryptminers.android.incognito.Util.SharedValues;
-
+/*
+* This class generate the QR Code using the public key and user id of the user
+* */
 public class QRCodeGeneratorActivity extends AppCompatActivity {
     private ImageView imageViewQRCode;
     @Override
@@ -31,6 +33,14 @@ public class QRCodeGeneratorActivity extends AppCompatActivity {
         generateQRCode();
     }
 
+    /*
+    * Function Name: generateQRCode
+    * Description: This function does following tasks:
+    *   1. Get the public key of self
+    *   2. Get the user id
+    *   3. Generate QR code using BarcodeEncoder() class
+    *   4. Encode QR code into Bitmap image
+    * */
     public void generateQRCode(){
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
         try{

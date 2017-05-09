@@ -77,8 +77,6 @@ public class CreateGroupActivity extends AppCompatActivity {
     }
     public void loadFriends(){
         ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
-        //User user = new User("sam","kal","email","8978675645","pwd","cpwd");
-
         friends = db.getAllUsers();
         String[] friendNames = new String[friends.size()];
         for(int i =0;i<friends.size();i++){
@@ -96,15 +94,13 @@ public class CreateGroupActivity extends AppCompatActivity {
                 String strGroupName = groupName.getText().toString();
                 if(strGroupName.length() > 0){
                     try {
-                        // Generate symmetric group key
+                        // Generate symmetric 256 bit group key using AES
                         KeyGenerator keygen = KeyGenerator.getInstance("AES");
                         keygen.init(256);
                         groupKey = keygen.generateKey();
+                        // Store the group key by converting into string
                         String groupkey = Base64.toBase64String(groupKey.getEncoded());
-                        //String groupkey = new String(groupKey.getEncoded(),"UTF-8");
-                       // String stringKey = android.util.Base64.encodeToString(groupKey.getEncoded(), android.util.Base64.DEFAULT);
                         SharedValues.save(strGroupName+"_KEY",groupkey);
-                        //SharedValues.save(strGroupName+"_Group_Key",stringKey);
 
                     }
                     catch (NoSuchAlgorithmException e)
