@@ -66,6 +66,8 @@ public class CreateGroupActivity extends AppCompatActivity {
     KeyFactory keyFactory;
     PublicKey receiverPublicKey;
     byte[] encodedKeys;
+    SecretKey groupKey;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,8 +79,13 @@ public class CreateGroupActivity extends AppCompatActivity {
     }
     public void loadFriends(){
         ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
+        //User user = new User("sam","kal","email","8978675645","pwd","cpwd");
+
         friends = db.getAllUsers();
         String[] friendNames = new String[friends.size()];
+		
+		// Friends are loaded to be displyed while group creation
+		
         for(int i =0;i<friends.size();i++){
             User user = friends.get(i);
             friendNames[i] = user.getFirstName() + " " + user.getLastName();
@@ -90,18 +97,18 @@ public class CreateGroupActivity extends AppCompatActivity {
         btnCreateGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SecretKey groupKey=null;
                 String strGroupName = groupName.getText().toString();
                 if(strGroupName.length() > 0){
                     try {
-                        // Generate symmetric 256 bit group key using AES
+                        // Generate symmetric group key
                         KeyGenerator keygen = KeyGenerator.getInstance("AES");
                         keygen.init(256);
                         groupKey = keygen.generateKey();
-                        // Store the group key by converting into string
                         String groupkey = Base64.toBase64String(groupKey.getEncoded());
-                        SharedValues.save(strGroupName+"_KEY",groupkey);
-
+						
+                        // Group Key Saved in Group owner's shared preferences
+						SharedValues.save(strGroupName+"_KEY",groupkey);
+                        
                     }
                     catch (NoSuchAlgorithmException e)
                     {
@@ -114,14 +121,16 @@ public class CreateGroupActivity extends AppCompatActivity {
                         if (selectedItems.get(i)) {
                             User user = friends.get(i);
                             groupMembers.add(String.valueOf(user.getEmail()));
-                            Log.e("userid",String.valueOf(user.getEmail()));
+                         
+                            // Get user's public key from database
                             String memberKey = user.getPublicKey();
                             byte[] decodeKey = Base64.decode(memberKey);
                             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodeKey);
                             try {
                                 keyFactory = KeyFactory.getInstance("RSA");
                                 receiverPublicKey = keyFactory.generatePublic(keySpec);
-                                encodedKeys = PGP.encryptKeys(groupKey.getEncoded(),receiverPublicKey);
+                                // Group key is encryted with each group member's public key
+								encodedKeys = PGP.encryptKeys(groupKey.getEncoded(),receiverPublicKey);
                             } catch (NoSuchAlgorithmException e) {
                                 e.printStackTrace();
                             } catch (InvalidKeySpecException e) {
@@ -138,21 +147,15 @@ public class CreateGroupActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
 
-                            //byte[] encryptedGroupKey = PGP.encryptKeys(groupKey.getEncoded(), receiverPublicKey);
-                                String strGroupKey = Base64.toBase64String(encodedKeys);
-                                Log.e("strGroupKey",strGroupKey);
-                                //String encryptedGroupKey = PGP.encryptMessage(strGroupKey, memberKey);
-
-                            //memberKeys.add(Base64.toBase64String(encryptedGroupKey));
-                                //Cipher cipher = Cipher.getInstance("RSA");
-                                //cipher.init(Cipher.ENCRYPT_MODE,receiverPublicKey);
-                                //byte[] encryptedGroupKey = cipher.doFinal(groupKey.getEncoded());
-                              // String encrytedgp = Base64.toBase64String(encryptedGroupKey);
-                              //  String encrytedgp = android.util.Base64.encodeToString(encryptedGroupKey,android.util.Base64.NO_PADDING);
-                                strGroupKey=strGroupKey+"_"+groupName.getText().toString()+"_Key"; // groupkey_grouname_Key
-                                //SendKeyMessageTask sendKeyMessageTask = new SendKeyMessageTask(new Message(SharedValues.getValue("USER_EMAIL"),user.getEmail(),strGroupKey,"left"));
-                                //sendKeyMessageTask.execute("asd");
-                               // memberKeys.add(encryptedGroupKey);
+                            String strGroupKey = Base64.toBase64String(encodedKeys);
+                            Log.e("strGroupKey",strGroupKey);
+                                
+                            strGroupKey=strGroupKey+"_"+groupName.getText().toString()+"_Key"; // groupkey_grouname_Key
+                            
+							// Group Key Distribution among group members
+							SendKeyMessageTask sendKeyMessageTask = new SendKeyMessageTask(new Message(SharedValues.getValue("USER_EMAIL"),user.getEmail(),strGroupKey,"left"));
+                            sendKeyMessageTask.execute("asd");
+                            
 
                         }
                     }
@@ -266,7 +269,6 @@ public class CreateGroupActivity extends AppCompatActivity {
 
             if (success) {
                 //refresh chat adapter list view
-                SharedValues.save("Last_Read"+group.getGroupName(), 0);
                 ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
                 db.insertGroup(group);
                 Intent intent = new Intent(CreateGroupActivity.this, MainActivity.class);

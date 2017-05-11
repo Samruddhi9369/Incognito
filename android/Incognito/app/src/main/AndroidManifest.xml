@@ -12,12 +12,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activity.LoginActivity">
+
+        <activity android:name=".Activity.Splash" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+        </activity>
+        <activity android:name=".Activity.LoginActivity">
+
         </activity>
         <activity
             android:name=".Activity.RegisterActivity"
@@ -52,12 +57,14 @@
             android:name=".Service.GroupMessageService"
             android:enabled="true"
             android:exported="false" />
-<!--
+        <!--
         <service
             android:name=".Service.KeyMessageService"
             android:enabled="true"
-            android:exported="false" />-->
-        <activity android:name=".Activity.GroupChatActivity"></activity>
+            android:exported="false" />
+        -->
+        <activity android:name=".Activity.GroupChatActivity" />
+
     </application>
 
 </manifest>

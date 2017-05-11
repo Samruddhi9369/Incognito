@@ -409,4 +409,28 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         // returning groups
         return admin;
     }
+
+    public String getUserName(String userEmail)
+    {
+        String userName="";
+        String selectQuery = "SELECT "+ KEY_FIRST_NAME +" FROM " +
+                TABLE_FRIENDS +
+                " WHERE " +
+                KEY_EMAIL +" = "
+                + "'"+userEmail+"'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                userName = cursor.getString(cursor.getColumnIndexOrThrow(KEY_FIRST_NAME));
+                //groups.add(new Group(cursor.getString(cursor.getColumnIndexOrThrow(KEY_GROUP_NAME)),cursor.getString(cursor.getColumnIndexOrThrow(KEY_ADMIN_EMAIL)),members));
+            } while (cursor.moveToNext());
+        }
+        // closing connection
+        cursor.close();
+        db.close();
+        // returning groups
+        return userName;
+    }
 }

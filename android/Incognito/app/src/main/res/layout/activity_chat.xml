@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:weightSum="1"
-    tools:context="me.scryptminers.android.incognito.Activity.ChatActivity">
+    tools:context="me.scryptminers.android.incognito.Activity.ChatActivity"
+    android:background="@drawable/chat_back"
+    >
 
         <ListView
             android:id="@+id/listView_chat"

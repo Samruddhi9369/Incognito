@@ -36,7 +36,6 @@ import javax.crypto.spec.SecretKeySpec;
 import me.scryptminers.android.incognito.Activity.ChatActivity;
 import me.scryptminers.android.incognito.Activity.GroupChatActivity;
 import me.scryptminers.android.incognito.Database.ChatDatabaseHelper;
-import me.scryptminers.android.incognito.Model.Group;
 import me.scryptminers.android.incognito.Model.GroupMessage;
 import me.scryptminers.android.incognito.Model.Message;
 import me.scryptminers.android.incognito.Util.PGP;
@@ -62,8 +61,7 @@ public class GroupMessageService extends IntentService {
 
             ReceiveGroupMessageTask receiveGroupMessageTask = new ReceiveGroupMessageTask();
             receiveGroupMessageTask.execute("dsds");
-            //ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
-            //db.getAllMessages(userEmail);
+            
 
         }
     };
@@ -72,7 +70,7 @@ public class GroupMessageService extends IntentService {
 
         private RequestQueue requestQueue;
         private JsonObjectRequest jsonObjectRequest;
-        private final String URL="https://scryptminers.me/getTeamMessage";
+        private final String URL="https://scryptminers.me/getGroupMessage";
         private boolean successrun;
 
         public ReceiveGroupMessageTask() {
@@ -82,9 +80,9 @@ public class GroupMessageService extends IntentService {
         protected Boolean doInBackground(String... params) {
 
             Map<String,String> userMap = new HashMap<>();
-            userMap.put("to", SharedValues.getValue("USER_EMAIL"));
+            userMap.put("from", SharedValues.getValue("USER_EMAIL"));
             userMap.put("group_name", groupName);
-            userMap.put("Last_Group_Read",""+SharedValues.getLong("Last_Read"+groupName));
+            userMap.put("Last_Group_Read",""+SharedValues.getLong("Last_Group_Read"));
             try {
                 // Simulate network access.
                 requestQueue = Volley.newRequestQueue(getApplicationContext());
@@ -98,49 +96,52 @@ public class GroupMessageService extends IntentService {
                                 successrun=false;
                             }
                             else {
-                                //String message_received  = response.getString("message");
+                                
                                 successrun=true;
                                 ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
+                                
                                 for (int i = 0, size = jsonArray.length(); i < size; i++) {
                                     JSONObject objectInArray = jsonArray.getJSONObject(i);
                                     String ciphertext = objectInArray.getString("message");
-                                    String message = PGP.decryptMessage(ciphertext, SharedValues.getValue("PRIVATE_KEY"));
-                                    String direction="right";
-                                    db.addGroupMessage(new GroupMessage(message,objectInArray.getString("from"),userEmail,groupName,direction));
-                                    GroupChatActivity.groupMessages.add(new GroupMessage(message,objectInArray.getString("from"),userEmail,groupName,direction));
-                                    Log.d("Recieved", message);
-                                    SharedValues.save("Last_Read"+groupName, objectInArray.getInt("id"));
-
-
-                                    /*for(int j = 0;j<groupMembers.length;j++){
-                                        if(!groupMembers[j].matches(userEmail)){
-                                            //position = j;
-                                        //String cipherToDecrypt = arrCiphertext[position];
-
-                                        }
-                                    }*/
-                                    /*//String groupKey = db.getGroupKey(groupName);
+                                
+									// Get groupKey from Shared Preferences
                                     String groupKey=SharedValues.getValue(groupName+"_KEY");
-                                    //--------------------------------------------------------------
-                                   // byte[] encodedKey     = android.util.Base64.decode(groupKey, android.util.Base64.DEFAULT);
-                                   // SecretKey originalKey = new SecretKeySpec(encodedKey, 0, encodedKey.length, "AES");
-                                    //--------------------------------------------------------------
+                                
                                     byte[] gkey = Base64.decode(groupKey);
                                     SecretKey encryptionKey = new SecretKeySpec(gkey, "AES");
                                     byte[] rawAESkey = encryptionKey.getEncoded();
-                                    //byte[] decryptedMessage = PGP.decryptGroupMessage(ciphertext, encryptionKey);
-                                    Log.e("Received groupc",ciphertext);
+									
+									// Decrypt received message with symmetric group key
                                     byte[] decryptedMessage = PGP.decryptGroupMessage(ciphertext, encryptionKey);
-                                    //String message = PGP.decryptGroupMessage(ciphertext, rawAESkey);
+                                
                                     String message = new String(decryptedMessage);
-                                    //db.addMessage(new Message(friendEmail, userEmail, message, "right"));
-
-                                  */
-                                    //msgs.add(new Message(friendName,message,"right"));
+                                
+                                    String direction="";
+                                
+                                    db.addGroupMessage(new GroupMessage(message,userEmail,groupName,direction));
+                                    GroupChatActivity.groupMessages.add(new GroupMessage(message,userEmail,groupName,"right"));
+                                    Log.d("Recieved", message);
+                                    // Update Last Read value
+									SharedValues.save("Last_Group_Read", objectInArray.getInt("id"));
+                                    
                                 }
                                 //listViewChat.invalidate();
                             }
                         } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeyException e) {
+                            e.printStackTrace();
+                        } catch (IllegalBlockSizeException e) {
+                            e.printStackTrace();
+                        } catch (BadPaddingException e) {
+                            e.printStackTrace();
+                        } catch (InvalidAlgorithmParameterException e) {
+                            e.printStackTrace();
+                        } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
                     }

@@ -13,14 +13,25 @@ use Illuminate\Support\Facades\Validator;
 
 class MessageController extends Controller {
 
+
+	/* --------------------------------------------------
+		Function to send one to one messages
+		Input Parameters : sender, message, receiver
+		
+		Status Codes :
+		0 -> Missing Values
+		1 -> Invalid Sender Details 
+		2 -> Invalid Receiver Details
+	-----------------------------------------------------*/
+
 	public function sendMessages(Request $request)
 	{
 		// Authenticate JWT Token
-		/*if(!JWTAuth::parseToken()->authenticate())
+		if(!JWTAuth::parseToken()->authenticate())
 		{
 			$res=['error'=>'auth failed'];
 			return response()->json($res);
-		}*/
+		}
 		$fields=$request->all();
 		$paramscheck= [
 			'sender' => 'required',
@@ -70,14 +81,24 @@ class MessageController extends Controller {
 
 	}
 
+	/* --------------------------------------------------
+		Function to get received messages
+		Input Parameters : from, to, lastread
+		
+		Status Codes :
+		0 -> Invalid Sender email / receiver email
+
+	-----------------------------------------------------*/
+
+
 	public function getMessages(Request $request){
 	
 	// Authenticate JWT Token
-	/*	if(!JWTAuth::parseToken()->authenticate())
+		if(!JWTAuth::parseToken()->authenticate())
 		{
 			$error=['error' => 'Authentication Failed'];
 			return response()->json($error);
-		}*/
+		}
 	
 		$parameters = $request->all();
 
@@ -118,9 +139,16 @@ class MessageController extends Controller {
 
 	}
 
-	/*
-		Input: Groupname, Receiver email id, last read
-	*/
+	/* --------------------------------------------------
+		Function to get received messages
+		Input Parameters : Groupname, Receiver email id, last read
+		
+		Status Codes :
+		0 -> Invalid receiver email
+
+	-----------------------------------------------------*/
+
+
 	public function getKeyMessages(Request $request){
 	
 	// Authenticate JWT Token

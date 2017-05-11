@@ -210,6 +210,16 @@ class GroupController extends Controller {
                   
     }
 
+		/* --------------------------------------------------	
+			Function for Group Send Message
+		Input Params : message,from,group_id
+		Error code 0 -> Invalid sender ID
+		Error code 1 -> Invalid Group ID
+		Error code 2 -> Missing Parameters
+
+		------------------------------------------------------ */
+
+
     public function getTeamMessage(Request $request) {
         //JWTAuth::parseToken()->authenticate();
         	$parameters = $request->all();

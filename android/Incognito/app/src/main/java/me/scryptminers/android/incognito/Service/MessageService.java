@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -115,10 +116,18 @@ public class MessageService extends IntentService {
                     public void onErrorResponse(VolleyError error) {
                         //Toast.makeText(ChatActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                });
+                })
+                {
+                        @Override
+                        public Map<String, String> getHeaders() throws AuthFailureError {
+                            Map<String, String> params = new HashMap<String, String>();
+                            params.put("Authorization", "Bearer " + SharedValues.getValue("JWT_TOKEN"));
+                            return params;
+                        }
+                };
                 requestQueue.add(jsonObjectRequest);
                 while (!jsonObjectRequest.hasHadResponseDelivered())
-                    Thread.sleep(2000);
+                    Thread.sleep(200);
             } catch (InterruptedException e) {
                 Log.d("error",e.toString());
             }
@@ -133,7 +142,7 @@ public class MessageService extends IntentService {
             } else {
 
             }
-            handler.postDelayed(runnableCode,3000);
+            handler.postDelayed(runnableCode,1000);
         }
 
         @Override

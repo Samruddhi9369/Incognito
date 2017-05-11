@@ -30,6 +30,13 @@ class UserController extends Controller {
 		/* --------------------------------------------------	
 			Function for User Registration
 		Input Params : firstname, lastname, email, phone, password
+
+		Status Codes :
+		   0 -> Validation Failed.
+		   1 -> User Registered.
+		   2 -> Registration Failed.Email not sent.	
+		  10 -> Duplicate Email ID
+
 		------------------------------------------------------ */
 	
 	public function test(Request $request)
@@ -124,6 +131,11 @@ class UserController extends Controller {
 	/* --------------------------------------------------------
 		Function for User Verification
 		Input Params : email , verification_code
+
+		Status Codes :
+		3 -> Verification Failed. Invalid Email.
+		4 -> Succcessful Verification. Token Issued to the user.
+		5 -> Couldn't verify. Invalid Verification Code.
 	------------------------------------------------------------*/
 	
 	public function verifyUser(Request $request)
@@ -164,6 +176,13 @@ class UserController extends Controller {
 		Function for Remote Login
 		Input Params part 1 : Email
 		Input Params part 2 : Email,tag
+
+		Status Codes :
+		0 -> Login successful
+		6 -> Missing Parameters in Login Step 1.
+		7 -> Invalid Login Email. No such User Found.
+		8 -> Missing Parameters
+		9 -> Invalid Password
 	---------------------------------------------- */ 
 	
 	
@@ -228,14 +247,31 @@ class UserController extends Controller {
 		
 	}
 
+
+
+
+	/* ---------------------------------------------------
+		Function to request user details from User ID
+		Input Params : ID , Sender ID , JWT Token in Header
+
+		Status Codes :
+		0 -> Invalid ID. Sender does not exist.
+		1 -> Requesting user does not exist.
+		11 -> Success. Response sent to client.
+		12 -> Authentication Failed
+	------------------------------------------------------ */ 
+
+
+
+
 	public function getUser(Request $request) {
 		
-		/*
+		
 		if(!JWTAuth::parseToken()->authenticate())
 		{
 			$res=['error'=>'auth failed', 'code'=>'12'];
 			return response()->json($res);
-		}*/	
+		}	
 		
 		$parameters = $request->all();
 		// Sender should exist and be verified

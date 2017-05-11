@@ -134,6 +134,7 @@ public class VerificationActivity extends AppCompatActivity {
                 ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
                 db.onUpgrade(db.getWritableDatabase(),1,2);
                 KeyGenerator.generateKeys();
+                SharedValues.save("JWT_TOKEN",token);
                 SharedValues.save("USER_ID",userId);
                 SharedValues.save("USER_EMAIL",email);
                 SharedValues.save("Last_Read",0);

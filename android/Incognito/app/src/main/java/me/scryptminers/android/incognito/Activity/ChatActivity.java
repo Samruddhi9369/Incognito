@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -173,7 +174,16 @@ public class ChatActivity extends AppCompatActivity {
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(ChatActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                });
+                })
+                {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("Authorization", "Bearer "+ SharedValues.getValue("JWT_TOKEN"));
+                        return params;
+                    }
+                };
+
                 requestQueue.add(jsonObjectRequest);
                 while (!jsonObjectRequest.hasHadResponseDelivered())
                     Thread.sleep(2000);

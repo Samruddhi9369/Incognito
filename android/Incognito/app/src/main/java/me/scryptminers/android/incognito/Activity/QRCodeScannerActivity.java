@@ -155,10 +155,11 @@ public class QRCodeScannerActivity extends AppCompatActivity {
                         Toast.makeText(QRCodeScannerActivity.this, "Error in Service Request. \n Please try again.", Toast.LENGTH_SHORT).show();
                     }
                 }){
-                    @Override
-                    public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String,String> params = new HashMap<>();
-                        params.put("Authorization","Bearer "+SharedValues.getValue("JWT_TOKEN"));
+
+                        @Override
+                        public Map<String, String> getHeaders() throws AuthFailureError {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("Authorization", "Bearer "+ SharedValues.getValue("JWT_TOKEN"));
                         return params;
                     }
                 };

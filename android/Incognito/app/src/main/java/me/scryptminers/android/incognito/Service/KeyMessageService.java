@@ -20,9 +20,21 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.spongycastle.util.encoders.Base64;
 
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import me.scryptminers.android.incognito.Activity.ChatActivity;
 import me.scryptminers.android.incognito.Database.ChatDatabaseHelper;
@@ -91,15 +103,40 @@ public class KeyMessageService extends IntentService {
                                 for (int i = 0, size = jsonArray.length(); i < size; i++) {
                                     JSONObject objectInArray = jsonArray.getJSONObject(i);
                                     String ciphertext = objectInArray.getString("message");
-                                    ciphertext=ciphertext.replace("_"+groupname+"_Key","");
-                                    Log.d("In Key Message service",ciphertext);
-                                    String message = PGP.decryptMessage(ciphertext, SharedValues.getValue("PRIVATE_KEY"));
-                                    Log.d("Recieved", message);
-                                    ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
-                                    db.updateGroupKey(groupname,message);
-                                    SharedValues.save(groupname+"_KEY",message);
-                                   // SharedValues.save("Last_Read", objectInArray.getInt("id"));
-                                    //msgs.add(new Message(friendName,message,"right"));
+                                    ciphertext = ciphertext.replace("_" + groupname + "_Key", "");
+                                    Log.d("In Key Message service", ciphertext);
+                                    //Decrypt Recieved Group Key by User's Private Key
+									
+                                    try {
+                                        byte[] receiverPrKey = Base64.decode(SharedValues.getValue("PRIVATE_KEY"));
+                                        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(receiverPrKey);
+                                        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                                        PrivateKey recPrivateKey = keyFactory.generatePrivate(keySpec);
+                                        byte[] messagebytes = PGP.decryptKeys(Base64.decode(ciphertext), recPrivateKey);
+                                        String message = Base64.toBase64String(messagebytes);
+                                        Log.d("Recieved", message);
+                                        ChatDatabaseHelper db = new ChatDatabaseHelper(getApplicationContext());
+                                        db.updateGroupKey(groupname, message);
+										
+										// Save Received Group key in Shared Preferences
+                                        
+										SharedValues.save(groupname + "_KEY", message);
+                                        
+                                    } catch (NoSuchAlgorithmException e) {
+                                        e.printStackTrace();
+                                    } catch (InvalidKeyException e) {
+                                        e.printStackTrace();
+                                    } catch (InvalidKeySpecException e) {
+                                        e.printStackTrace();
+                                    } catch (NoSuchPaddingException e) {
+                                        e.printStackTrace();
+                                    } catch (BadPaddingException e) {
+                                        e.printStackTrace();
+                                    } catch (NoSuchProviderException e) {
+                                        e.printStackTrace();
+                                    } catch (IllegalBlockSizeException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                                 //listViewChat.invalidate();
                             }

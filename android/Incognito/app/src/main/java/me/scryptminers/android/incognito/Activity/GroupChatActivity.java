@@ -32,7 +32,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,15 +76,19 @@ public class GroupChatActivity extends AppCompatActivity {
         userEmail = SharedValues.getValue("USER_EMAIL");
         getSupportActionBar().setTitle(groupName);
         buttonSend = (ImageView) findViewById(R.id.groupSend);
-
         msgIntent = new Intent(this, GroupMessageService.class);
         msgIntent.putExtra("GROUP_NAME", groupName);
         startService(msgIntent);
 
+        keyIntent=new Intent(this,KeyMessageService.class);
+        keyIntent.putExtra("groupname",groupName);
+        keyIntent.putExtra("useremail",userEmail);
+        startService(keyIntent);
+
         listViewGroupChat = (ListView) findViewById(R.id.listView_groupChat);
         db = new ChatDatabaseHelper(getApplicationContext());
         groupMessages = new ArrayList<GroupMessage>();
-        groupMessages = db.getAllGroupMessages(userEmail,groupName);
+        groupMessages = db.getAllGroupMessages(userEmail);
         listViewGroupChat.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
 
         //grpkey = db.getGroupKey(groupName);
@@ -107,29 +110,28 @@ public class GroupChatActivity extends AppCompatActivity {
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                sendChatMessage(messageToSend.getText().toString(),groupName);
-               // grpkey = db.getGroupKey(groupName);
-                /*grpkey = SharedValues.getValue(groupName+"_KEY");
+                // Retrieve Group Key from Shared Preferences
+                grpkey = SharedValues.getValue(groupName+"_KEY");
                 Log.e("Group Key",grpkey);
                 String plaintextMessage = messageToSend.getText().toString();
                 messageToSend.setText("");
                 GroupMessage grpmsg = new GroupMessage(plaintextMessage,userEmail,groupName,"left");
                 groupMessages.add(grpmsg);
+				// Add message to the local database
                 db.addGroupMessage(grpmsg);
-                byte[] gkey = android.util.Base64.decode(grpkey,android.util.Base64.DEFAULT);
-                //byte[] gkey = new byte[0];
-                // gkey = grpkey.getBytes("UTF-8");
+                byte[] gkey = Base64.decode(grpkey);
+                
 
-                SecretKey encryptionKey = new SecretKeySpec(gkey,0,gkey.length,"AES");
+                SecretKey encryptionKey = new SecretKeySpec(gkey,"AES");
                 byte[] rawAESkey = encryptionKey.getEncoded();
-               // byte[] encodedkey = android.util.Base64.decode(grpkey, android.util.Base64.DEFAULT);
-                //SecretKey originalKey = new SecretKeySpec(encodedkey, 0, encodedkey.length, "AES");
+               
                 try {
-                    //byte[] encryptedMessage = PGP.encryptGroupMessage(messageToSend.getText().toString(),rawAESkey);
+					// Encrypt plaintext message with AES groupkey
                     byte[] encryptedMessage = PGP.encryptGroupMessage(plaintextMessage,encryptionKey);
-                    String message = Base64.toBase64String(encryptedMessage);
+                    String message = android.util.Base64.encodeToString(encryptedMessage,android.util.Base64.DEFAULT);
                     customGroupChatAdapter.notifyDataSetChanged();
                     listViewGroupChat.invalidate();
+					// Send Message 
                     SendGroupMessageTask sendGroupMessageTask = new SendGroupMessageTask(new GroupMessage(message,userEmail,groupName,"left"));
                     sendGroupMessageTask.execute();
 
@@ -147,7 +149,7 @@ public class GroupChatActivity extends AppCompatActivity {
                     e.printStackTrace();
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
-                }*/
+                }
             }
         });
 
@@ -162,45 +164,23 @@ public class GroupChatActivity extends AppCompatActivity {
     }
     private boolean sendChatMessage(String message, String groupName){
 
-        // from to message direction
+        
+        GroupMessage groupMessage = new GroupMessage(message,userEmail,groupName,"left");
         //db.addGroupMessage(groupMessage);
         messageToSend.setText("");
-
-        String encrypted_message = "";
-        String[] groupMembers = db.getAllGroupMembers(groupName);
-        Log.d("Group Members", Arrays.toString(groupMembers));
-        //String admin = db.getAdmin(groupName);
-        //String[] grpMembers = new String[groupMembers.length-1];
-        String[] encryptedGroupMessage = new String[groupMembers.length];
-        // cv@cv.com,vc@vc.com,h@h.com
-        GroupMessage groupMessage = new GroupMessage();
-        for(int i = 0;i<groupMembers.length;i++){
-            if(!groupMembers[i].matches(userEmail)) {
-
-                String receiverPublicKey = db.getFriendPublicKey(groupMembers[i]);
-                String friendEmail = groupMembers[i];
-                groupMessage = new GroupMessage(message,userEmail,friendEmail,groupName,"left");
-                encrypted_message = PGP.encryptMessage(message, receiverPublicKey);
-                SendGroupMessageTask sendGroupMessageTask = new SendGroupMessageTask(new GroupMessage(encrypted_message,userEmail,friendEmail,groupName,"left"));
-                sendGroupMessageTask.execute();
-            }
-        }
-
         groupMessages.add(groupMessage);
         customGroupChatAdapter.notifyDataSetChanged();
         listViewGroupChat.invalidate();
-        /*//Convert String Array to comma Separated String
-        StringBuilder builder = new StringBuilder();
-        for (String msg : encryptedGroupMessage) {
-            builder.append(msg).append("%%%");
+        String encrypted_message = "";
+        String[] groupMembers = db.getAllGroupMembers(groupName);
+        for(int i = 0;i<groupMembers.length;i++){
+            String receiverPublicKey = db.getFriendPublicKey(groupMembers[i]);
+            encrypted_message = PGP.encryptMessage(message,receiverPublicKey);
+
+            SendGroupMessageTask sendGroupMessageTask = new SendGroupMessageTask(new GroupMessage(encrypted_message,userEmail,groupName,"left"));
+            sendGroupMessageTask.execute();
         }
 
-        builder.deleteCharAt(builder.length() - 1);
-        encrypted_message = builder.toString();
-        Log.e("enc msg", encrypted_message);*/
-        //userMap.put("members",builder.toString());
-        //SendGroupMessageTask sendGroupMessageTask = new SendGroupMessageTask(new GroupMessage(encrypted_message,userEmail,groupName,"left"));
-        //sendGroupMessageTask.execute();
         //encrypted_message = PGPFunctions.generateEncryptedMessage(message,receiverPublicKey);
 
 
@@ -209,10 +189,10 @@ public class GroupChatActivity extends AppCompatActivity {
 
     public class SendGroupMessageTask extends AsyncTask<String, Void, Boolean> {
 
-        private GroupMessage message;
+        private final GroupMessage message;
         private RequestQueue requestQueue;
         private JsonObjectRequest jsonObjectRequest;
-        private final String URL="https://scryptminers.me/sendTeamMessage";
+        private final String URL="https://scryptminers.me/sendGroupMessage";
 
         public SendGroupMessageTask(GroupMessage message) {
             this.message = message;
@@ -222,13 +202,8 @@ public class GroupChatActivity extends AppCompatActivity {
         protected Boolean doInBackground(String... params) {
             Map<String,String> userMap = new HashMap<>();
             userMap.put("from",SharedValues.getValue("USER_EMAIL"));
-            userMap.put("to",message.getTo());
             userMap.put("message",message.getMessage());
             userMap.put("group_name",message.getgroupName());
-            /*userMap.put("sender",SharedValues.getValue("USER_EMAIL"));
-            userMap.put("receiver",message.getTo());
-            userMap.put("message",message.getMessage());*/
-
 
             try {
                 // Simulate network access.
@@ -278,37 +253,12 @@ public class GroupChatActivity extends AppCompatActivity {
             registerReceiver(broadcastReceiver, new IntentFilter("UpdateGroupMessage"));
             isRegistered = true;
 
-/*            broadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    // msgs.clear();
-                    //msgs = db.getAllMessages(userEmail);
-                    customChatAdapter.notifyDataSetChanged();
-                    listViewChat.invalidate();
-                    //listViewChat.setSelection(customChatAdapter.getCount() - 1);
-                }
-            };*/
 
         }
 
     }
 
-    /*@Override
-    protected void onPostResume() {
-        super.onPostResume();
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                // msgs.clear();
-                //msgs = db.getAllMessages(userEmail);
-                customChatAdapter.notifyDataSetChanged();
-                listViewChat.invalidate();
-                //listViewChat.setSelection(customChatAdapter.getCount() - 1);
-            }
-        };
-    }*/
-
-    @Override
+       @Override
     public void onStop() {
         super.onStop();
         if (isRegistered) {
